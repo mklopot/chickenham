@@ -31,5 +31,7 @@ class Config:
         self.save()
 
     def save(self):
+        open(conffile, 'a').close()
+        os.chmod(conffile, '0400')
         with open(conffile, 'w') as f:
             yaml.dump(self.data, f)
