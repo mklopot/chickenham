@@ -1,9 +1,11 @@
 from coinbase.wallet.client import Client
+from pycoin.symbols.btc import network
 import config
 import collections
 import getpass
 import re
 import combine
+import input_shares
 
 my_conf = config.Config()
 while True:
@@ -18,12 +20,13 @@ while True:
             coinbase_api_key = None
             coinbase_api_secret = None
             print("The key or secret you entered were not valid. Try again...")
+            continue
     coinbase_user = c.get_current_user()
     print("https://coinbase.com reports the API key you entered is associated with {} <{}> residing in {}. Is this correct?".format(
                coinbase_user.name, coinbase_user.email, coinbase_user.country.name))
     user_prompt = input("Type 'yes' and press ENTER to confirm. Type 'no' and press ENTER to provide a different API key: ")
     user_prompt = user_prompt.to_lower()
-    if user_prompt[:2] == "yes":
+    if user_prompt[:3] == "yes":
         break
     else:
         print("You have chosen to use a different API key")
@@ -52,7 +55,7 @@ if len(btc_accounts) == 1:
           "If you have a very specific reason, and this is not the account you want to use, "
           "you will have to set another one up on https://coinbase.com. In that case, "
           "type 'no' and press ENTER once another account is set up, and you will have the option to select it"
-          "Otherwise, press enter to confirm")
+          "To use this acocunt, press ENTER")
     user_prompt = input("Confirm: ")
     user_prompt = user_prompt.to_lower()
     # TODO: query accounts again here
@@ -71,43 +74,44 @@ else:
     
 deposit_address = account.create_address("Transfer from Veggie Chickenham {}".format(datetime.datetime.now().strftime(%m/%d/%Y)))    
 
-shares_list = []    
-print("You will now be prompted for the batch number of each shared code, and then the code itself, one at a time. "
-      "Make sure all codes that you will enter are part of the same batch.")
-user_input = input("Enter batch number (or press ENTER if no more codes to input): ")
+while True:
+    shares = input_shares.input_batch()
+    combiner = combine.Combiner(len(shares))
+    secret = combiner(shares)
+    if not secret:
+        print("The Shared Codes could not be combined. Try again."
+    else:
+        print("Shared Codes successfully combined!")
+        break
 
-# Batch numbers look like this: 0-4-10-9
-def parse_batch(batch_num):
-    if not re.match(r"^[0-9-]+", batch_num):
-        print("The batch number can only contain numbers and dashes")
-        return False
-    batchsplit = batch_num.split("-")
-    if len(batchsplit) != 4:
-        print "A batch number should contain only numbers and exactly three dashes"
-        return False
-    batch, threshold, num_shares, checksum = batchsplit[0], batchsplit[1], batchsplit[2], batchsplit[3]
-    return int(batch), int(threshold), int(num_shares), int(checksum)
+private_key = network.keys.private(secret_exponent=secret)
+wif = private_key.wif()
 
-def parse_code(code_input):
-    no_whitespace = "".join(split(code_input)).to_upper() 
-    if not re.match(r"^[0-9A-F]{64}",no_whitespace):
-        print("Shared code must be exactly 64 characters long and contain digits and/or letters A thru F")
-        return False
-    return no_whitespace
-    
+from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 
-if user_input:    
-    parsed_batch = parse_batch(user_input)     
-    if parse:
-        user_code_input = getpass.getpass("Enter shared code (you will not see the code as you type it): ") 
-        parsed_code = parse_code(user_code_input)
-        if parsed_code:
-            shares_list.append((parsed_batch,parsed_code))
+# rpc_user and rpc_password are set in the bitcoin.conf file
+rpc_connection = AuthServiceProxy("http://%s:%s@127.0.0.1:8332"%(rpc_user, rpc_password))
+print("Balance before import: {} BTC".format(rpc_connection.getbalance()))
+rpc_connection.importprivkey(wif)
+balance = rpc_connection.getbalance()
+print("Balance after import: {} BTC".format(balance))
+r = requests.get("https://bitcoinfees.earn.com/api/v1/fees/recommended")
+fee = int(r.json()["fastestFee"]) * 225 * 2 * 0.00000001 #convert to BTC from satoshis, multiply by approx. bytes per transaction, and double it, just in case
+rpc_connection.settxfee(fee)
+txid = rpc_connection.sendtoaddress(deposit_address, balance)
+my_conf.set('txid', txid)   
 
-batches = set()        
-for share in shares_list:
-    batches.add((share[0][0], share[0][1], share[0][2]))
-if len(batches) > 1:
-    print("Inconsistent batch numbers")
+print("Initiated on-chain transfer, transaction: " + txid)
+print("To complete the transfer, 6 confirmations are required. This usually takes less than two hours, but sometimes may take as long as a few days...")
+confirmations = 0
+while confirmations < 6:
+    r = requests.get("http://bitcoin.info/tx/{}?show_adv=false&format=json".format(tx))
+    tx_block_height = r.json()["block_height"]
+    time.sleep(20)
+    current_block_height = requests.get("https://blockchain.info/q/getblockcount")
+    confirmations = current_block_height - tx_block_height + 1
+    print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\bConfirmations: {}".format(confirmations), end="")
+    time.sleep(20)
 
-
+print("Confirmation complete. Initiationg withdrawal of funds to bank account..."
+wthdraw = c.withdraw(account.id, account.balance, account.currency, payment_method.id)
