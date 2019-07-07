@@ -34,20 +34,18 @@ while True:
 my_conf.set('coinbase_api_key', coinbase_api_key)
 my_conf.set('coinbase_api_secret', coinbase_api_secret)   
 
-def get_btc_account(c):
-    btc_acounts = []
+def get_accounts_by_currency(c, currency='BTC'):
+    acounts = []
         all_accounts = c.get_accounts()
-        btc_accounts = [x for x in all_accounts.data if x.currency == 'BTC' and x.allow_withdrawals]
-    while not btc_accounts:
-        print("No Bitcoin accounts that allow withdrawal are showing. "
-              "This is unusual, there should be at least one by default. "
-              "Contact https://coinbase.com. Once resolved, press ENTER to continue...")
+        accounts = [x for x in all_accounts.data if x.currency == currency]
+    while not accounts:
+        print("No {} accounts are showing. ".format(currency))
         input()
         all_accounts = c.get_accounts()
-        btc_accounts = [x for x in all_accounts.data if x.currency == 'BTC' and x.allow_withdrawals]
-    return btc_accounts
+        accounts = [x for x in all_accounts.data if x.currency == 'BTC']
+    return accounts
 
-btc_accounts = get_btc_accounts(c)
+btc_accounts = get_accounts_by_currency(c)
 if len(btc_accounts) == 1:
     print("One Bitcoin account found, called '{}', with a balance of {} {}.".format(
                btc_accounts[0].name, btc_accounts[0].balance.amount, btc_accounts[0].balance.amount.currency))
@@ -59,7 +57,7 @@ if len(btc_accounts) == 1:
     user_prompt = input("Confirm: ")
     user_prompt = user_prompt.to_lower()
     # TODO: query accounts again here
-    account = btc_accounts[0]
+    btc_account = btc_accounts[0]
 else:
     accounts_hash = collections.ordereddict()
     for i, account in zip(range(1,len(btc_accounts)+1),btc_accounts):
@@ -69,17 +67,20 @@ else:
         print("{} - '{}', with a balance of {} {}\n\n".format(account_index, account.name, account.balance.amount, account.balance.currency))
     print("{} - None of the above: You will need to set up another "
           "Bitcoin account on https://coinbase.com, then select this option".format(len(accounts_hash)))
-    user_prompt = input("Select an option (1-{}:) ".format(len(accounts_hash)))
-    account = account_hash[int(user_prompt)]
+    user_prompt = input("Select an option (1-{}) and press ENTER: ".format(len(accounts_hash)))
+    btc_account = account_hash[int(user_prompt)]
     
-deposit_address = account.create_address("Transfer from Veggie Chickenham {}".format(datetime.datetime.now().strftime(%m/%d/%Y)))    
+address_object = account.create_address()    
+deposit_address = address_object.address
+
+usd_account = get_accounts_by_currency(c, "USD")[0]
 
 while True:
     shares = input_shares.input_batch()
     combiner = combine.Combiner(len(shares))
     secret = combiner(shares)
     if not secret:
-        print("The Shared Codes could not be combined. Try again."
+        print("The Shared Codes could not be combined. Try again. Starting over..."
     else:
         print("Shared Codes successfully combined!")
         break
@@ -104,14 +105,22 @@ my_conf.set('txid', txid)
 print("Initiated on-chain transfer, transaction: " + txid)
 print("To complete the transfer, 6 confirmations are required. This usually takes less than two hours, but sometimes may take as long as a few days...")
 confirmations = 0
+print("{}Last checked at: [{}]     Confirmations: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), confirmations), end="", flush=True)
 while confirmations < 6:
-    r = requests.get("http://bitcoin.info/tx/{}?show_adv=false&format=json".format(tx))
+    r = requests.get("http://blockchain.info/tx/{}?show_adv=false&format=json".format(txid))
     tx_block_height = r.json()["block_height"]
     time.sleep(20)
-    current_block_height = requests.get("https://blockchain.info/q/getblockcount")
+    current_block_height = int(requests.get("https://blockchain.info/q/getblockcount").text)
     confirmations = current_block_height - tx_block_height + 1
-    print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\bConfirmations: {}".format(confirmations), end="")
+    print("{}Last checked at: [{}]     Confirmations: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), confirmations), end="", flush=True)
     time.sleep(20)
 
-print("Confirmation complete. Initiationg withdrawal of funds to bank account..."
-wthdraw = c.withdraw(account.id, account.balance, account.currency, payment_method.id)
+print("Confirmation complete. Initiating a sale from BTC to USD")
+
+sell = btc_account.sell(btc_account.balance.amount, currency = btc_account.balance.currency, payment_method = usd_account.id)
+
+payment_methods = c.get_payment_methods()
+payment_methods_withdraw = [p for p in payment_methods.data if p.withraw_allowed]
+payment_method = payment_methods_withdraw[0]
+
+withdraw = c.withdraw(usd_account.id, amount=usd_account.balance.amount, currency=usd_account.balance.currency, payment_method=payment_method.id)
