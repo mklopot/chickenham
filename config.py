@@ -9,8 +9,8 @@ class Data:
 
 
 class Config:
-    def __init__(self):
-        self.keys = ["coinbase_api_key", "coinbase_api_secret"]
+    def __init__(self, conffile):
+        self.keys = ["coinbase_api_key", "coinbase_api_secret", "txid"]
         self.data = Data()
         if Path.is_file(conffile):
             config_on_disk = []
@@ -22,6 +22,8 @@ class Config:
             for key in self.keys:
                 if key in config_on_disk:
                     setattr(self.data, key, config_on_disk[key])
+                else:
+                    setattr(self.data, key, None)
         else:
             for key in self.keys:
                 setattr(self.data, key, None)
@@ -35,3 +37,8 @@ class Config:
         os.chmod(conffile, '0400')
         with open(conffile, 'w') as f:
             yaml.dump(self.data, f)
+
+    def delete(self, attr):
+        delattr(self.data, attr)
+        self.save()
+        
