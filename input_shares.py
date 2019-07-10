@@ -1,15 +1,15 @@
-from shares import Batch, Share
+from share import Batch, Share
 
 class UserInput:
     def get_valid_batch_number(self):
-            while True
+            while True:
                 batch_input = input("Please enter the Batch Number for the shared code, and press ENTER (or just press ENTER to start this batch over): ")          
                 if batch_input == "":
                     return
-                batch = Batch(first_batch_input)
-                if not self.batch.valid:
+                batch = Batch(batch_input)
+                if not batch.valid:
                     print("The Batch Number you entered is not valid. A batch number must contain a number followed by a slash, "
-                          "another number folowed by a dash, then one more number, for example: 5/8-19. Try again."
+                          "another number folowed by a dash, then one more number, for example: 5/8-19. Try again.")
                     continue
                 if self.batch is not None:
                     if batch == self.batch:
@@ -29,30 +29,35 @@ class UserInput:
                 return
             share = Share(share_input, self.batch)
             if not share.code:
-                print("The Shared Code you entered is invalid. \n"
-                      " - The code must consist of numbers and letters A thru F.\n "
+                print("The Shared Code you entered is invalid.\n"
+                      " - The code must consist of numbers and letters A thru F.\n"
                       " - The code must be 86 characters long.\n"
-                      " - If a letter or number is unreadable, enter your best guess, or a zero, instead of that letter or number."
-                      "Try again.") 
+                      " - If a letter or number is unreadable, enter your best guess, or a zero, instead of that letter or number.\n"
+                      "Try again...\n") 
                 continue
-            self.shares.append(share)
+            else:
+                return share
                
     def input_batch(self):
-        while True:
-            self.batch = None
-            self.shares = []
-            print("You will now be asked to enter the Shared Codes along with their batch numbers, until you have entered enough codes to proceed...")
+        self.batch = None
+        self.shares = []
+        print("You will now be asked to enter the Shared Codes along with their batch numbers, until you have entered enough codes to proceed...")
+        while not self.shares:
+            self.input_loop()
+        return self.shares
 
+    def input_loop(self):
+        while True:
             batch_number = self.get_valid_batch_number() 
             if not batch_number:
-                print("Discarding previously entered Shared Codes and starting this entire batch over..."
+                print("Discarding previously entered Shared Codes and starting this entire batch over...")
                 continue
 
             share = self.get_share()
             if not share:
-                print("Discarding previously entered Shared Codes and starting this entire batch over..."
+                print("Discarding previously entered Shared Codes and starting this entire batch over...")
                 continue
             self.shares.append(share)
 
-            if batch.threshold <= len(self.shares)
-                return shares 
+            if self.batch.threshold <= len(self.shares):
+                return self.shares 

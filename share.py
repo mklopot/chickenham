@@ -13,9 +13,9 @@ class Batch:
             groups = parsed.groups()
             if '' not in groups:
                 self.valid = True
-                self.sequence = groups[0]
-                self.threshold = groups[1]
-                self.size = groups[2]
+                self.sequence = int(groups[0])
+                self.threshold = int(groups[1])
+                self.size = int(groups[2])
 
     def __eq__(self, other):
         return self.sequence == other.sequence and \
