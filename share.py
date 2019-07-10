@@ -13,25 +13,26 @@ class Batch:
             groups = parsed.groups()
             if '' not in groups:
                 self.valid = True
-                self.sequence = groups[1]
-                self.threshold = groups[2]
-                self.size = groups[3]
+                self.sequence = groups[0]
+                self.threshold = groups[1]
+                self.size = groups[2]
 
     def __eq__(self, other):
-        return self.sequence == other.sequence and
-             self.threshold == other.threshold and
+        return self.sequence == other.sequence and \
+             self.threshold == other.threshold and \
              self.size == other.size
 
 
 class Share:
-    rs = reedsolo.RSCodec(20)
+    rs = reedsolo.RSCodec(10)
 
     def __init__(self, raw_value, batch):
-        self.raw_value = "".join(raw_value.split())
+        raw_value = "".join(raw_value.split())
+        self.raw_value = raw_value.replace("-", "")
         self.batch = batch
         self.code = ""
         try:
-            decoded = rs.decode(bytes.fromhex(self.raw_value))
+            decoded = self.rs.decode(bytes.fromhex(self.raw_value))
         except Exception:
             return 
         if len(decoded) == 33:
