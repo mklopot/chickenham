@@ -1,4 +1,5 @@
 from pycoin.symbols.btc import network
+from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 import config
 import collections
 import getpass
