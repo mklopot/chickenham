@@ -36,10 +36,11 @@ rpc_connection.importprivkey(wif)
 balance = rpc_connection.getbalance()
 print("Balance after import: {} BTC".format(balance))
 r = requests.get("https://bitcoinfees.earn.com/api/v1/fees/recommended")
-fee = int(r.json()["fastestFee"]) * 225 * 2 * 0.00000001 #convert to BTC from satoshis, multiply by approx. bytes per transaction, and double it, just in case
+fee_recommended = int(r.json()["fastestFee"]) * 225 * 2 * 0.00000001 #convert to BTC from satoshis, multiply by approx. bytes per transaction, and double it, just in case
+fee = min(fee_recommended, 0.001)
 rpc_connection.settxfee(fee)
 txid = rpc_connection.sendtoaddress(deposit_address, balance)
-my_conf.set('txid', txid)   
+conf.set('txid', txid)   
 
 print("Initiated on-chain transfer, transaction: " + txid)
 print("To complete the transfer, 6 confirmations are required. This usually takes less than two hours, but sometimes may take as long as a few days...")
