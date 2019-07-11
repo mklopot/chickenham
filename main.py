@@ -16,7 +16,7 @@ usd_account = coinbase_utils.user_choose_confirm(c, "USD", 'USD account')
 
 secret = None
 while not secret:
-    shares = input_shares.input_batch()
+    shares = [share.code for share in input_shares.input_batch()]
     combiner = combine.Combiner(len(shares))
     secret = combiner(shares)
     if not secret:
@@ -30,7 +30,7 @@ wif = private_key.wif()
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 
 # rpc_user and rpc_password are set in the bitcoin.conf file
-rpc_connection = AuthServiceProxy("http://%s:%s@127.0.0.1:8332"%(rpc_user, rpc_password))
+rpc_connection = AuthServiceProxy("http://%s:%s@127.0.0.1:8332"%(conf.data.rpc_user, conf.data.rpc_password))
 print("Balance before import: {} BTC".format(rpc_connection.getbalance()))
 rpc_connection.importprivkey(wif)
 balance = rpc_connection.getbalance()
@@ -57,9 +57,17 @@ while confirmations < 6:
 print("Confirmation complete. Initiating a sale from BTC to USD")
 
 sell = btc_account.sell(btc_account.balance.amount, currency = btc_account.balance.currency, payment_method = usd_account.id)
-
+while sell.status != 'completed':
+    print("{}Last checked at: [{}]     Sell status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), sell.status), end="", flush=True)
+    sell.refresh() 
+    sleep 10
+    
 payment_methods = c.get_payment_methods()
 payment_methods_withdraw = [p for p in payment_methods.data if p.withraw_allowed]
 payment_method = payment_methods_withdraw[0]
 
 withdraw = c.withdraw(usd_account.id, amount=usd_account.balance.amount, currency=usd_account.balance.currency, payment_method=payment_method.id)
+while withdraw.status != 'completed':
+    print("{}Last checked at: [{}]     Withdraw status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), withdraw.status), end="", flush=True)
+    withdraw.refresh() 
+    sleep 10
