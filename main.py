@@ -36,7 +36,7 @@ rpc_connection.importprivkey(wif)
 balance = rpc_connection.getbalance()
 print("Balance after import: {} BTC".format(balance))
 r = requests.get("https://bitcoinfees.earn.com/api/v1/fees/recommended")
-fee_recommended = int(r.json()["fastestFee"]) * 225 * 2 * 0.00000001 #convert to BTC from satoshis, multiply by approx. bytes per transaction, and double it, just in case
+fee_recommended = int(r.json()["fastestFee"]) * 0.00001 #convert to BTC from satoshis, multiply by approx. bytes per transaction, and double it, just in case
 fee = min(fee_recommended, 0.001)
 rpc_connection.settxfee(fee)
 txid = rpc_connection.sendtoaddress(deposit_address, balance)
