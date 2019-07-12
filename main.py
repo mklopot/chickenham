@@ -68,6 +68,7 @@ if not conf.data.sell_id:
 
     print("Initiating a sale from BTC to USD...")
     sell = btc_account.sell(btc_account.balance.amount, currency = btc_account.balance.currency, payment_method = usd_account.id)
+    conf.set("sell_id", sell.id)
 else:
     print("Retrieving previous sell information...")
     # TODO check that getting the sell object succeeds
@@ -84,6 +85,7 @@ if not conf.data.withdrawal_id:
     payment_method = payment_methods_withdraw[0]
 
     withdraw = c.withdraw(usd_account.id, amount=usd_account.balance.amount, currency=usd_account.balance.currency, payment_method=payment_method.id)
+    conf.set("withdraw_id", withdraw.id)
 else:
     # TODO check that getting the withdraw object succeeds
     withdraw = usd_account.get_withdraw(conf.data.withdraw_id)
