@@ -10,7 +10,7 @@ class Data:
 
 class Config:
     def __init__(self, conffile):
-        self.keys = ["coinbase_api_key", "coinbase_api_secret", "txid"]
+        self.keys = ["coinbase_api_key", "coinbase_api_secret", "txid", "btc_account_id", "usd_account_id", "sell_id", "withdraw_id"]
         self.data = Data()
         if Path.is_file(conffile):
             config_on_disk = []
