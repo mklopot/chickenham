@@ -64,7 +64,7 @@ while sell.status != 'completed':
     sleep 10
     
 payment_methods = c.get_payment_methods()
-payment_methods_withdraw = [p for p in payment_methods.data if p.withraw_allowed]
+payment_methods_withdraw = [p for p in payment_methods.data if p.withdraw_allowed]
 payment_method = payment_methods_withdraw[0]
 
 withdraw = c.withdraw(usd_account.id, amount=usd_account.balance.amount, currency=usd_account.balance.currency, payment_method=payment_method.id)
@@ -72,3 +72,4 @@ while withdraw.status != 'completed':
     print("{}Last checked at: [{}]     Withdraw status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), withdraw.status), end="", flush=True)
     withdraw.refresh() 
     sleep 10
+print("Done.")
