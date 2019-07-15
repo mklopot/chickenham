@@ -61,7 +61,10 @@ if not conf.data.sell_id:
     print("{}Last checked at: [{}]     Confirmations: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), confirmations), end="", flush=True)
     while confirmations < 6:
         r = requests.get("http://blockchain.info/tx/{}?show_adv=false&format=json".format(txid))
-        tx_block_height = r.json()["block_height"]
+        try:
+            tx_block_height = r.json()["block_height"]
+        except JSONDecodeError:
+            pass
         time.sleep(20)
         current_block_height = int(requests.get("https://blockchain.info/q/getblockcount").text)
         confirmations = current_block_height - tx_block_height + 1
