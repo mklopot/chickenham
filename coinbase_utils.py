@@ -2,7 +2,7 @@ from coinbase.wallet.client import Client
 import collections
 import config
 
-class Client:
+class CoinClient:
     @staticmethod
     def new_from_config(conf):
         if conf.data.coinbase_api_key and conf.data.coinbase_api_secret:
@@ -15,7 +15,7 @@ class Client:
                           coinbase_user.name, coinbase_user.email, coinbase_user.country.name))
                 user_prompt = input("Type 'yes' and press ENTER to confirm. "
                                 "Type 'no' and press ENTER to be prompted for a different API key: ")
-                user_prompt = user_prompt.to_lower()
+                user_prompt = user_prompt.lower()
                 if user_prompt[:3] == "yes":
                     return client
             except Exception:
@@ -39,22 +39,22 @@ class Client:
                           coinbase_user.name, coinbase_user.email, coinbase_user.country.name))
                 user_prompt = input("Type 'yes' and press ENTER to confirm. "
                                 "Type 'no' and press ENTER to be prompted for a different API key: ")
-                user_prompt = user_prompt.to_lower()
+                user_prompt = user_prompt.lower()
                 if user_prompt[:3] == "yes":
                     conf.set('coinbase_api_key', coinbase_api_key)
                     conf.set('coinbase_api_secret', coinbase_api_secret)
                     return client
                 else:
                     print("Discaring the API KEY and API Secret you entered, and starting over...")
-            except Exception:
+            except Exception as e:
+                 print(e)
                  print("The API Key or API Secret you entered was invalid. Try again...")
-                 pass
 
     @staticmethod
     def new(conf):
-        client = Client.new_from_config(conf) 
+        client = CoinClient.new_from_config(conf) 
         if not client:
-            client = Client.new_from_prompt(conf)
+            client = CoinClient.new_from_prompt(conf)
         return client
 
 def get_accounts_by_currency(c, currency='BTC'):
@@ -82,7 +82,7 @@ def user_choose_confirm(client, currency="BTC", desc="account"):
                       desc,
                       accounts[0].name,
                       accounts[0].balance.amount,
-                      accounts[0].balance.amount.currency))
+                      accounts[0].balance.currency))
             print("This looks good. Press ENTER to confirm.\n\n"
                   "If you have a very specific reason, and this is not the account you want to use, "
                   "you will have to set another one up on https://coinbase.com. In that case, "
@@ -90,7 +90,7 @@ def user_choose_confirm(client, currency="BTC", desc="account"):
                   "and you will have the option to select it\n"
                   "To use this account, press ENTER")
             user_input = input("Confirm: ")
-            user_input = user_input.to_lower()
+            user_input = user_input.lower()
             if user_input[:2] != "no":
                 return accounts[0]
         else:

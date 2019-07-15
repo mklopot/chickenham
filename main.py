@@ -1,3 +1,5 @@
+#!/usr/bin/python3.6
+
 from pycoin.symbols.btc import network
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 from pathlib import Path
@@ -11,16 +13,16 @@ import coinbase_utils
 
 conf = config.Config(Path.home().joinpath('.chiknhamrc'))
 if not conf.data.txid or not requests.get("http://blockchain.info/tx/{}?show_adv=false&format=json".format(conf.data.txid)):
-    c = coinbase_utils.Client.new(conf)
+    c = coinbase_utils.CoinClient.new(conf)
     btc_account = coinbase_utils.user_choose_confirm(c, 'BTC', 'Bitcoin account')
     deposit_address = btc_account.create_address().address
-    conf.set('btc_acccount_id', btc_account.id)
+    conf.set('btc_account_id', btc_account.id)
     usd_account = coinbase_utils.user_choose_confirm(c, "USD", 'USD account')
-    conf.set('usd_acccount_id', usd_account.id)
+    conf.set('usd_account_id', usd_account.id)
     secret = None
-    
+    inputter = input_shares.UserInput()    
     while not secret:
-        shares = [share.code for share in input_shares.input_batch()]
+        shares = [share.code for share in inputter.input_batch()]
         combiner = combine.Combiner(len(shares))
         secret = combiner(shares)
         if not secret:
@@ -28,7 +30,7 @@ if not conf.data.txid or not requests.get("http://blockchain.info/tx/{}?show_adv
         else:
             print("Shared Codes successfully combined!")
 
-    private_key = network.keys.private(secret_exponent=secret)
+    private_key = network.keys.private(secret_exponent=int(secret,16))
     wif = private_key.wif()
                   
     # rpc_user and rpc_password are set in the bitcoin.conf file

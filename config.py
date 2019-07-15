@@ -1,7 +1,7 @@
 import yaml
+import os
 from pathlib import Path
-
-conffile = "~/.sellchiknham"
+import stat
 
 
 class Data:
@@ -10,13 +10,14 @@ class Data:
 
 class Config:
     def __init__(self, conffile):
-        self.keys = ["coinbase_api_key", "coinbase_api_secret", "txid", "btc_account_id", "usd_account_id", "sell_id", "withdraw_id"]
+        self.keys = ["coinbase_api_key", "coinbase_api_secret", "txid", "btc_account_id", "usd_account_id", "sell_id", "withdraw_id", "rpc_user", "rpc_password"]
         self.data = Data()
-        if Path.is_file(conffile):
-            config_on_disk = []
+        self.path = Path(conffile)
+        if self.path.is_file():
+            config_on_disk = {}
             with open(conffile, 'r') as f:
                 try:
-                    config_on_disk = yaml.load(f)
+                    config_on_disk.update(yaml.load(f))
                 except Exception:
                     pass
             for key in self.keys:
@@ -29,14 +30,16 @@ class Config:
                 setattr(self.data, key, None)
 
     def set(self, attr, value):
+        if attr not in self.keys:
+            raise AttributeError("Unsupported Key")
         setattr(self.data, attr, value)
         self.save()
 
     def save(self):
-        open(conffile, 'a').close()
-        os.chmod(conffile, '0400')
-        with open(conffile, 'w') as f:
-            yaml.dump(self.data, f)
+        self.path.open('a').close()
+        os.chmod(str(self.path), stat.S_IRUSR | stat.S_IWUSR)
+        with self.path.open('w') as f:
+            yaml.dump(self.data.__dict__, f)
 
     def delete(self, attr):
         delattr(self.data, attr)
