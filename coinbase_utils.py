@@ -15,13 +15,13 @@ class Client:
                           coinbase_user.name, coinbase_user.email, coinbase_user.country.name))
                 user_prompt = input("Type 'yes' and press ENTER to confirm. "
                                 "Type 'no' and press ENTER to be prompted for a different API key: ")
-            user_prompt = user_prompt.to_lower()
-            if user_prompt[:3] == "yes":
-                return client
+                user_prompt = user_prompt.to_lower()
+                if user_prompt[:3] == "yes":
+                    return client
             except Exception:
                 print("The previously stored API Key or API Secret was invalid, discaridng...")  
-                conf.del('coinbase_api_key')
-                conf.del('coinbase_api_secret')
+                conf.delete('coinbase_api_key')
+                conf.delete('coinbase_api_secret')
 
     @staticmethod
     def new_from_prompt(conf):
