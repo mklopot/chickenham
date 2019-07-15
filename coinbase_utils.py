@@ -73,7 +73,7 @@ def user_choose_confirm(client, currency="BTC", desc="account"):
     while not account:
         accounts = get_accounts_by_currency(client, currency)
         if not accounts:
-            print("No {}s on https://coinbase.com are visible with the API Key provided. Check permissions?"
+            print("No {}s on https://coinbase.com are visible with the API Key provided. Check permissions...")
             input("Log on to https://coinbase.com, set up the necessary account, or change API Key permissions,\n"
                   "and press ENTER to continue...")
             continue
