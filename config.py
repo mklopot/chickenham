@@ -1,5 +1,5 @@
 import yaml
-import Path
+from pathlib import Path
 
 conffile = "~/.sellchiknham"
 
