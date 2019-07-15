@@ -95,10 +95,10 @@ while withdraw.status != 'completed':
     withdraw.refresh() 
     time.sleep(10)
 
-conf.del('btc_account')
-conf.del('usd_account')
-conf.del('txid')
-conf.del('sell_id')
-conf.del('withdraw_id')
+conf.delete('btc_account')
+conf.delete('usd_account')
+conf.delete('txid')
+conf.delete('sell_id')
+conf.delete('withdraw_id')
 
 print("Done.")
