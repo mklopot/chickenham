@@ -1,5 +1,6 @@
 from pycoin.symbols.btc import network
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
+from pathlib import Path
 import config
 import collections
 import getpass
@@ -8,7 +9,7 @@ import combine
 import input_shares
 import coinbase_utils
 
-conf = config.Config()
+conf = config.Config(Path.home().joinpath('.chiknhamrc'))
 if not conf.data.txid or not requests.get("http://blockchain.info/tx/{}?show_adv=false&format=json".format(conf.data.txid)):
     c = coinbase_utils.Client.new(conf)
     btc_account = coinbase_utils.user_choose_confirm(c, 'BTC', 'Bitcoin account')
