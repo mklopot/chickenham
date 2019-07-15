@@ -77,7 +77,7 @@ else:
 while sell.status != 'completed':
     print("{}Last checked at: [{}]     Sell status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), sell.status), end="", flush=True)
     sell.refresh() 
-    sleep 10
+    time.sleep(10)
 <<<<<<< HEAD
     
 payment_methods = c.get_payment_methods()
