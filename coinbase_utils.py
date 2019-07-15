@@ -59,10 +59,10 @@ class Client:
 
 def get_accounts_by_currency(c, currency='BTC'):
     acounts = []
-        all_accounts = c.get_accounts()
-        accounts = [x for x in all_accounts.data if x.currency == currency]
+    all_accounts = c.get_accounts()
+    accounts = [x for x in all_accounts.data if x.currency == currency]
     while not accounts:
-        print("No {} accounts are showing. ".format(currency))
+        print("No {} accounts are showing. Check API key permissions...".format(currency))
         input()
         all_accounts = c.get_accounts()
         accounts = [x for x in all_accounts.data if x.currency == 'BTC']
