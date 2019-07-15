@@ -93,7 +93,7 @@ else:
 while withdraw.status != 'completed':
     print("{}Last checked at: [{}]     Withdraw status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), withdraw.status), end="", flush=True)
     withdraw.refresh() 
-    time.sleep 10
+    time.sleep(10)
 
 conf.del('btc_account')
 conf.del('usd_account')
