@@ -78,12 +78,6 @@ while sell.status != 'completed':
     print("{}Last checked at: [{}]     Sell status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), sell.status), end="", flush=True)
     sell.refresh() 
     time.sleep(10)
-<<<<<<< HEAD
-    
-payment_methods = c.get_payment_methods()
-payment_methods_withdraw = [p for p in payment_methods.data if p.withdraw_allowed]
-payment_method = payment_methods_withdraw[0]
-=======
                   
 if not conf.data.withdrawal_id:    
     payment_methods = c.get_payment_methods()
@@ -95,14 +89,11 @@ if not conf.data.withdrawal_id:
 else:
     # TODO check that getting the withdraw object succeeds
     withdraw = usd_account.get_withdraw(conf.data.withdraw_id)
->>>>>>> 42d99ceed7c075065ad4ee84da248684ccc7b936
 
 while withdraw.status != 'completed':
     print("{}Last checked at: [{}]     Withdraw status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), withdraw.status), end="", flush=True)
     withdraw.refresh() 
-    sleep 10
-<<<<<<< HEAD
-=======
+    time.sleep 10
 
 conf.del('btc_account')
 conf.del('usd_account')
@@ -110,5 +101,4 @@ conf.del('txid')
 conf.del('sell_id')
 conf.del('withdraw_id')
 
->>>>>>> 42d99ceed7c075065ad4ee84da248684ccc7b936
 print("Done.")
