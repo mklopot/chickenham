@@ -51,10 +51,10 @@ class Client:
                  pass
 
     @staticmethod
-    def new(self, conf):
+    def new(conf):
         client = Client.new_from_config(conf) 
         if not client:
-            client = new_from_prompt(conf)
+            client = Client.new_from_prompt(conf)
         return client
 
 def get_accounts_by_currency(c, currency='BTC'):
