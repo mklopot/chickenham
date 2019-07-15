@@ -46,7 +46,7 @@ class Client:
                     return client
                 else:
                     print("Discaring the API KEY and API Secret you entered, and starting over...")
-             except Exception:
+            except Exception:
                  print("The API Key or API Secret you entered was invalid. Try again...")
                  pass
 
