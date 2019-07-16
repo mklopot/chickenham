@@ -46,7 +46,7 @@ if not conf.data.txid or not requests.get("http://blockchain.info/tx/{}?show_adv
     fee = min(fee_recommended, 0.003)
     print("Setting transaction fee to {} BTC".format(fee))
     rpc_connection.settxfee(fee)
-    txid = rpc_connection.sendtoaddress(deposit_address, balance)
+    txid = rpc_connection.sendtoaddress(deposit_address, balance, "", "", True)
     conf.set('txid', txid)
 else:
     txid = conf.data.txid
