@@ -45,8 +45,8 @@ if not conf.data.txid or not requests.get("http://blockchain.info/tx/{}?show_adv
     fee_recommended = int(r.json()["fastestFee"]) * 0.00004
     fee = min(fee_recommended, 0.003)
     rpc_connection.settxfee(fee)
-    conf.set('txid', txid)
     txid = rpc_connection.sendtoaddress(deposit_address, balance)
+    conf.set('txid', txid)
 else:
     txid = conf.data.txid
     #TODO check that getting accounts succeeds:
