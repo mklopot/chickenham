@@ -44,6 +44,7 @@ if not conf.data.txid or not requests.get("http://blockchain.info/tx/{}?show_adv
     #convert to BTC/KB from satoshis/B, and quadruple it, just in case
     fee_recommended = int(r.json()["fastestFee"]) * 0.00004
     fee = min(fee_recommended, 0.003)
+    print("Setting transaction fee to {} BTC".format(fee))
     rpc_connection.settxfee(fee)
     txid = rpc_connection.sendtoaddress(deposit_address, balance)
     conf.set('txid', txid)
