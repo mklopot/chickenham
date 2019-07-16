@@ -42,7 +42,7 @@ if not conf.data.txid or not requests.get("http://blockchain.info/tx/{}?show_adv
     r = requests.get("https://bitcoinfees.earn.com/api/v1/fees/recommended")
                   
     #convert to BTC/KB from satoshis/B, and quadruple it, just in case
-    fee_recommended = int(r.json()["fastestFee"]) * 0.00004
+    fee_recommended = round(r.json()["fastestFee"] * 0.00004, 8)
     fee = min(fee_recommended, 0.003)
     print("Setting transaction fee to {} BTC".format(fee))
     rpc_connection.settxfee(fee)
