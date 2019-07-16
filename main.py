@@ -5,8 +5,8 @@ from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 from pathlib import Path
 import config
 import collections
-import getpass
 import re
+import requests
 import combine
 import input_shares
 import coinbase_utils
