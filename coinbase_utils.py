@@ -119,7 +119,8 @@ def user_choose_confirm(client, currency="BTC", desc="account"):
 def user_choose_payment_method(c, payment_method_list):
     method = None
     while not method:
-        methods = 
+        payment_methods = c.get_payment_methods()
+        methods = [p for p in payment_methods.data if p.allow_withdraw and p.currency == 'USD']
         if not methods:
             print("No accounts linked for withdrawal are visible on https://coinbase.com with the API Key provided. Check permissions...")
             input("Log on to https://coinbase.com, set up the necessary account, or change API Key permissions,\n"

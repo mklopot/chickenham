@@ -100,7 +100,7 @@ if not conf.data.withdrawal_id:
     payment_methods_withdraw = [p for p in payment_methods.data if p.allow_withdraw and p.currency == 'USD']
     #TODO user choose withdrawal account
     #payment_method = payment_methods_withdraw[0]
-    payment_method = coinbase_utils.user_choose_payment_method(c, payment_methods_withdraw)
+    payment_method = coinbase_utils.user_choose_payment_method(c)
 
     print("Withdrawing funds from https://coinbase.com to the linked account...")
     withdrawal = c.withdraw(usd_account.id, amount=usd_account.balance.amount, currency=usd_account.balance.currency, payment_method=payment_method.id)
