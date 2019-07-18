@@ -58,7 +58,9 @@ else:
     usd_account = c.get_account(conf.data.usd_account_id)
 
 if not conf.data.sell_id:
-    print("On-blockchain transfer has been initiated, transaction: " + txid)
+    print("On-blockchain transfer has been initiated.\n"
+          "Transaction ID: " + txid)
+       `
     print("To complete the transfer, 6 confirmations are required.\n"
           "This usually takes less than two hours, but sometimes may take as long as a few days...")
     confirmations = 0
@@ -87,6 +89,7 @@ else:
     # TODO check that getting the sell object succeeds
     sell = btc_account.get_sell(conf.data.sell_id)              
                   
+print("Waiting for sell completion...")
 while sell.status != 'completed':
     print("{}Last checked at: [{}]     Sell status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), sell.status), end="", flush=True)
     sell.refresh() 
@@ -94,18 +97,21 @@ while sell.status != 'completed':
                   
 if not conf.data.withdrawal_id:    
     payment_methods = c.get_payment_methods()
-    payment_methods_withdraw = [p for p in payment_methods.data if p.allow_withdraw]
+    payment_methods_withdraw = [p for p in payment_methods.data if p.allow_withdraw and p.currency == 'USD']
     #TODO user choose withdrawal account
-    payment_method = payment_methods_withdraw[0]
+    #payment_method = payment_methods_withdraw[0]
+    payment_method = coinbase_utils.user_choose_payment_method(c, payment_methods_withdraw)
 
+    print("Withdrawing funds from https://coinbase.com to the linked account...")
     withdrawal = c.withdraw(usd_account.id, amount=usd_account.balance.amount, currency=usd_account.balance.currency, payment_method=payment_method.id)
     conf.set("withdrawal_id", withdrawal.id)
 else:
     # TODO check that getting the withdraw object succeeds
-    withdrawal = usd_account.get_withdrawal(conf.data.withdraw_id)
+    withdrawal = usd_account.get_withdrawal(conf.data.withdrawal_id)
 
+print("Waiting for withdrawal completion...")
 while withdrawal.status != 'completed':
-    print("{}Last checked at: [{}]     Withdraw status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), withdrawal.status), end="", flush=True)
+    print("{}Last checked at: [{}]     Withdrawal status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), withdrawal.status), end="", flush=True)
     withdrawal.refresh() 
     time.sleep(10)
 

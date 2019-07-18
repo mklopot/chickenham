@@ -95,7 +95,7 @@ def user_choose_confirm(client, currency="BTC", desc="account"):
                 return accounts[0]
         else:
             accounts_hash = collections.ordereddict()
-            for i, account in zip(range(1,len(btc_accounts)+1),btc_accounts):
+            for i, account in zip(range(1,len(accounts)+1),accounts):
                 accounts_hash[i] = account
 
             for account_index, account in accounts_hash.items():
@@ -112,6 +112,51 @@ def user_choose_confirm(client, currency="BTC", desc="account"):
                                      len(accounts_hash)))
             try:
                 account = account_hash[int(user_prompt)]
+            except IndexError:
+                pass
+
+
+def user_choose_payment_method(c, payment_method_list):
+    method = None
+    while not method:
+        methods = 
+        if not methods:
+            print("No accounts linked for withdrawal are visible on https://coinbase.com with the API Key provided. Check permissions...")
+            input("Log on to https://coinbase.com, set up the necessary account, or change API Key permissions,\n"
+                  "and press ENTER to continue...")
+            continue
+        if len(accounts) == 1:
+            print("One {} withdrawal method found: {}".format(
+                      methods[0].currency,
+                      methods[0].name))
+            print("This looks good. Press ENTER to confirm.\n\n"
+                  "If this is not the account you want to use, "
+                  "you will have to set another one up on https://coinbase.com. In that case, "
+                  "type 'no' and press ENTER once another account is set up, "
+                  "and you will have the option to select it\n"
+                  "To use this account, press ENTER")
+            user_input = input("Confirm: ")
+            user_input = user_input.lower()
+            if user_input[:2] != "no":
+                return methods[0]
+        else:
+            methods_hash = collections.ordereddict()
+            for i, method in zip(range(1,len(methods)+1),methods):
+                methods_hash[i] = method
+
+            for method_index, method in methods_hash.items():
+                print("{} - '{}', currency: {}\n\n".format(
+                          method_index,
+                          method.name,
+                          method.currency))
+
+            print("{} - None of the above: You will need to set up another "
+                  "withdrawal method on https://coinbase.com, then select this option".format(
+                       len(methods_hash), desc))
+            user_prompt = input("Select an option (1-{}) and press ENTER: ".format(
+                                     len(methods_hash)))
+            try:
+                method = methods_hash[int(user_prompt)]
             except IndexError:
                 pass
 
