@@ -77,7 +77,10 @@ if not conf.data.sell_id:
     print("Transfer transaction confirmation complete.")
 
     print("Initiating a sale from BTC to USD...")
-    sell = btc_account.sell(amount=btc_account.balance.amount, currency=btc_account.balance.currency, payment_method=usd_account.id)
+    fiat_accounts = [account for account in c.get_payment_methods if account.type == 'fiat_account']
+    usd_account_payment = [account for account in fiat_accounts if account.fiat_account.id == usd_account.id]
+    
+    sell = btc_account.sell(amount=btc_account.balance.amount, currency=btc_account.balance.currency, payment_method=usd_account_payment.id)
     conf.set("sell_id", sell.id)
 else:
     print("Retrieving previous sell information...")
@@ -91,24 +94,25 @@ while sell.status != 'completed':
                   
 if not conf.data.withdrawal_id:    
     payment_methods = c.get_payment_methods()
-    payment_methods_withdraw = [p for p in payment_methods.data if p.withraw_allowed]
+    payment_methods_withdraw = [p for p in payment_methods.data if p.allow_withdraw]
+    #TODO user choose withdrawal account
     payment_method = payment_methods_withdraw[0]
 
-    withdraw = c.withdraw(usd_account.id, amount=usd_account.balance.amount, currency=usd_account.balance.currency, payment_method=payment_method.id)
-    conf.set("withdraw_id", withdraw.id)
+    withdrawal = c.withdraw(usd_account.id, amount=usd_account.balance.amount, currency=usd_account.balance.currency, payment_method=payment_method.id)
+    conf.set("withdrawal_id", withdrawal.id)
 else:
     # TODO check that getting the withdraw object succeeds
-    withdraw = usd_account.get_withdraw(conf.data.withdraw_id)
+    withdrawal = usd_account.get_withdrawal(conf.data.withdraw_id)
 
-while withdraw.status != 'completed':
-    print("{}Last checked at: [{}]     Withdraw status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), withdraw.status), end="", flush=True)
-    withdraw.refresh() 
+while withdrawal.status != 'completed':
+    print("{}Last checked at: [{}]     Withdraw status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), withdrawal.status), end="", flush=True)
+    withdrawal.refresh() 
     time.sleep(10)
 
 conf.delete('btc_account')
 conf.delete('usd_account')
 conf.delete('txid')
 conf.delete('sell_id')
-conf.delete('withdraw_id')
+conf.delete('withdrawal_id')
 
 print("Done.")
