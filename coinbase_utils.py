@@ -7,7 +7,7 @@ class CoinClient:
     def new_from_config(conf):
         if conf.data.coinbase_api_key and conf.data.coinbase_api_secret:
             try:
-                client = Client(conf.coinbase_api_key, conf.coinbase_api_secret)
+                client = Client(conf.data.coinbase_api_key, conf.data.coinbase_api_secret)
                 coinbase_user = client.get_current_user()
                 print("https://coinbase.com reports the API key "
                       "you entered is associated with {} <{}> residing "

@@ -7,6 +7,8 @@ import config
 import collections
 import re
 import requests
+import time
+
 import combine
 import input_shares
 import coinbase_utils
@@ -50,6 +52,7 @@ if not conf.data.txid or not requests.get("http://blockchain.info/tx/{}?show_adv
     conf.set('txid', txid)
 else:
     txid = conf.data.txid
+    c = coinbase_utils.CoinClient.new(conf)
     #TODO check that getting accounts succeeds:
     btc_account = c.get_account(conf.data.btc_account_id)
     usd_account = c.get_account(conf.data.usd_account_id)
@@ -64,8 +67,8 @@ if not conf.data.sell_id:
         r = requests.get("http://blockchain.info/tx/{}?show_adv=false&format=json".format(txid))
         try:
             tx_block_height = r.json()["block_height"]
-        except JSONDecodeError:
-            pass
+        except Exception:
+            continue
         time.sleep(20)
         current_block_height = int(requests.get("https://blockchain.info/q/getblockcount").text)
         confirmations = current_block_height - tx_block_height + 1
@@ -74,7 +77,7 @@ if not conf.data.sell_id:
     print("Transfer transaction confirmation complete.")
 
     print("Initiating a sale from BTC to USD...")
-    sell = btc_account.sell(btc_account.balance.amount, currency = btc_account.balance.currency, payment_method = usd_account.id)
+    sell = btc_account.sell(amount=btc_account.balance.amount, currency=btc_account.balance.currency, payment_method=usd_account.id)
     conf.set("sell_id", sell.id)
 else:
     print("Retrieving previous sell information...")
