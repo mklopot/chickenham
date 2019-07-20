@@ -116,7 +116,7 @@ def user_choose_confirm(client, currency="BTC", desc="account"):
                 pass
 
 
-def user_choose_payment_method(c, payment_method_list):
+def user_choose_payment_method(c):
     method = None
     while not method:
         payment_methods = c.get_payment_methods()
@@ -126,7 +126,7 @@ def user_choose_payment_method(c, payment_method_list):
             input("Log on to https://coinbase.com, set up the necessary account, or change API Key permissions,\n"
                   "and press ENTER to continue...")
             continue
-        if len(accounts) == 1:
+        if len(methods) == 1:
             print("One {} withdrawal method found: {}".format(
                       methods[0].currency,
                       methods[0].name))

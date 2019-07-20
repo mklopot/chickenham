@@ -32,15 +32,16 @@ if not conf.data.txid or not requests.get("http://blockchain.info/tx/{}?show_adv
         else:
             print("Shared Codes successfully combined!")
 
-    private_key = network.keys.private(secret_exponent=int(secret,16))
+    private_key = network.keys.private(secret_exponent=int(secret, 16))
     wif = private_key.wif()
                   
     # rpc_user and rpc_password are set in the bitcoin.conf file
-    rpc_connection = AuthServiceProxy("http://%s:%s@127.0.0.1:8332"%(conf.data.rpc_user, conf.data.rpc_password))
-    print("Balance before import: {} BTC".format(rpc_connection.getbalance()))
+    rpc_connection = AuthServiceProxy("http://%s:%s@127.0.0.1:8332"%(conf.data.rpc_user, conf.data.rpc_password), timeout=4*60*60)
+    print("Local balance before import: {} BTC".format(rpc_connection.getbalance()))
+    print("Importing key and scanning the blockchain, this may take up to 3 hours, or more...")
     rpc_connection.importprivkey(wif)
     balance = rpc_connection.getbalance()
-    print("Balance after import: {} BTC".format(balance))
+    print("Local balance after import: {} BTC".format(balance))
     r = requests.get("https://bitcoinfees.earn.com/api/v1/fees/recommended")
                   
     #convert to BTC/KB from satoshis/B, and quadruple it, just in case
@@ -79,8 +80,8 @@ if not conf.data.sell_id:
     print("Transfer transaction confirmation complete.")
 
     print("Initiating a sale from BTC to USD...")
-    fiat_accounts = [account for account in c.get_payment_methods if account.type == 'fiat_account']
-    usd_account_payment = [account for account in fiat_accounts if account.fiat_account.id == usd_account.id]
+    fiat_accounts = [account for account in c.get_payment_methods().data if account.type == 'fiat_account']
+    usd_account_payment = [account for account in fiat_accounts if account.fiat_account.id == usd_account.id][0]
     
     sell = btc_account.sell(amount=btc_account.balance.amount, currency=btc_account.balance.currency, payment_method=usd_account_payment.id)
     conf.set("sell_id", sell.id)
@@ -91,22 +92,19 @@ else:
                   
 print("Waiting for sell completion...")
 while sell.status != 'completed':
-    print("{}Last checked at: [{}]     Sell status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), sell.status), end="", flush=True)
     sell.refresh() 
+    print("{}Last checked at: [{}]     Sell status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), sell.status), end="", flush=True)
     time.sleep(10)
                   
 if not conf.data.withdrawal_id:    
     payment_methods = c.get_payment_methods()
     payment_methods_withdraw = [p for p in payment_methods.data if p.allow_withdraw and p.currency == 'USD']
-    #TODO user choose withdrawal account
-    #payment_method = payment_methods_withdraw[0]
     payment_method = coinbase_utils.user_choose_payment_method(c)
 
     print("Withdrawing funds from https://coinbase.com to the linked account...")
     withdrawal = c.withdraw(usd_account.id, amount=usd_account.balance.amount, currency=usd_account.balance.currency, payment_method=payment_method.id)
     conf.set("withdrawal_id", withdrawal.id)
 else:
-    # TODO check that getting the withdraw object succeeds
     withdrawal = usd_account.get_withdrawal(conf.data.withdrawal_id)
 
 print("Waiting for withdrawal completion...")
