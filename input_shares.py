@@ -4,19 +4,21 @@ class UserInput:
     def get_valid_batch_number(self):
             while True:
                 batch_input = input("Please enter the Batch Number for the shared code, and press ENTER (or just press ENTER to start this batch over): ")          
-                if batch_input == "":
+                if not batch_input:
                     return
                 batch = Batch(batch_input)
                 if not batch.valid:
                     print("The Batch Number you entered is not valid. A batch number must contain a number followed by a slash, "
-                          "another number folowed by a dash, then one more number, for example: 5/8-19. Try again.")
+                          "another number, folowed by a dash, then one more number. For example: 5/8-19.\nTry again...")
                     continue
                 if self.batch is not None:
                     if batch == self.batch:
                         return batch
                     else:
-                        print("The Batch Number you entered does not match the previously entered batch numbers. "
-                              "All batch numbers within a single batch must be the same.\nTry again.")
+                        print("The Batch Number you entered does not match the previously entered batch numbers.\n "
+                              "All Batch Numbers within a single batch must be the same.\n"
+                              "If a shared code is marked with a non-matching Batch Number, do not try to use it as part of this batch.\n"
+                              "Try again...")
                         continue
                 else:
                     self.batch = batch
@@ -26,7 +28,7 @@ class UserInput:
         while True:
             share_input = input("Enter the Shared Code, and press ENTER: ")
             if not share_input:
-                return
+                continue
             share = Share(share_input, self.batch)
             if not share.code:
                 print("The Shared Code you entered is invalid.\n"
@@ -41,7 +43,7 @@ class UserInput:
     def input_batch(self):
         self.batch = None
         self.shares = []
-        print("You will now be asked to enter the Shared Codes along with their batch numbers, until you have entered enough codes to proceed...")
+        print("You will now be asked to enter the Shared Codes and their batch numbers, until you have entered enough codes to proceed...")
         while not self.shares:
             self.input_loop()
         return self.shares
@@ -51,13 +53,17 @@ class UserInput:
             batch_number = self.get_valid_batch_number() 
             if not batch_number:
                 print("Discarding previously entered Shared Codes and starting this entire batch over...")
+                self.shares = []
                 continue
 
             share = self.get_share()
             if not share:
                 print("Discarding previously entered Shared Codes and starting this entire batch over...")
                 continue
-            self.shares.append(share)
+            if share not in self.shares:
+                self.shares.append(share)
+            else:
+                print("*** Duplicate discarded ***")
 
             if self.batch.threshold <= len(self.shares):
                 return self.shares 
