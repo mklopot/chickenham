@@ -23,6 +23,7 @@ if not conf.data.txid or not requests.get("http://blockchain.info/tx/{}?show_adv
     conf.set('usd_account_id', usd_account.id)
     secret = None
     inputter = input_shares.UserInput()    
+    print(chr(27) + "[2J" + chr(27) + "[H") #Clear Screen
     while not secret:
         shares = [share.code for share in inputter.input_batch()]
         combiner = combine.Combiner(len(shares))
@@ -61,7 +62,6 @@ else:
 if not conf.data.sell_id:
     print("On-blockchain transfer has been initiated.\n"
           "Transaction ID: " + txid)
-       `
     print("To complete the transfer, 6 confirmations are required.\n"
           "This usually takes less than two hours, but sometimes may take as long as a few days...")
     confirmations = 0
@@ -78,11 +78,12 @@ if not conf.data.sell_id:
         print("{}Last checked at: [{}]     Confirmations: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), confirmations), end="", flush=True)
         time.sleep(20)
     print("Transfer transaction confirmation complete.")
-
+    # check coinbase balance here...
     print("Initiating a sale from BTC to USD...")
+    time.sleep(30) #just in case coinbase needs to catch up
     fiat_accounts = [account for account in c.get_payment_methods().data if account.type == 'fiat_account']
     usd_account_payment = [account for account in fiat_accounts if account.fiat_account.id == usd_account.id][0]
-    
+    btc_account.refresh() 
     sell = btc_account.sell(amount=btc_account.balance.amount, currency=btc_account.balance.currency, payment_method=usd_account_payment.id)
     conf.set("sell_id", sell.id)
 else:
@@ -102,6 +103,7 @@ if not conf.data.withdrawal_id:
     payment_method = coinbase_utils.user_choose_payment_method(c)
 
     print("Withdrawing funds from https://coinbase.com to the linked account...")
+    usd_account.refresh()
     withdrawal = c.withdraw(usd_account.id, amount=usd_account.balance.amount, currency=usd_account.balance.currency, payment_method=payment_method.id)
     conf.set("withdrawal_id", withdrawal.id)
 else:
@@ -109,8 +111,8 @@ else:
 
 print("Waiting for withdrawal completion...")
 while withdrawal.status != 'completed':
-    print("{}Last checked at: [{}]     Withdrawal status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), withdrawal.status), end="", flush=True)
     withdrawal.refresh() 
+    print("{}Last checked at: [{}]     Withdrawal status: {}".format("\b"*100, time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()), withdrawal.status), end="", flush=True)
     time.sleep(10)
 
 conf.delete('btc_account')
