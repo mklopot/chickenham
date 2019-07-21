@@ -1,6 +1,6 @@
 from coinbase.wallet.client import Client
 import collections
-import config
+
 
 class CoinClient:
     @staticmethod
@@ -13,13 +13,14 @@ class CoinClient:
                       "you entered is associated with {} <{}> residing "
                       "in {}. Do you want to proceed using this account?".format(
                           coinbase_user.name, coinbase_user.email, coinbase_user.country.name))
-                user_prompt = input("Type 'yes' and press ENTER to confirm. "
-                                "Type 'no' and press ENTER to be prompted for a different API key: ")
+                user_prompt = input("Type 'yes' and press ENTER to confirm.\n"
+                                    "Type 'no' and press ENTER to be prompted "
+                                    "for a different API key: ")
                 user_prompt = user_prompt.lower()
                 if user_prompt[:3] == "yes":
                     return client
             except Exception:
-                print("The previously stored API Key or API Secret was invalid, discaridng...")  
+                print("The previously stored API Key or API Secret was invalid, discarding...")
                 conf.delete('coinbase_api_key')
                 conf.delete('coinbase_api_secret')
 
@@ -29,7 +30,7 @@ class CoinClient:
         while not client:
             coinbase_api_key = input('Enter API Key: ')
             coinbase_api_secret = input('Enter API Secret: ')
-            print(chr(27) + "[2J" + chr(27) + "[H") #Clear Screen
+            print(chr(27) + "[2J" + chr(27) + "[H")  # Clear Screen
             try:
                 client = Client(coinbase_api_key, coinbase_api_secret)
                 coinbase_user = client.get_current_user()
@@ -37,8 +38,9 @@ class CoinClient:
                       "you entered is associated with {} <{}> residing "
                       "in {}. Do you want to proceed using this account?".format(
                           coinbase_user.name, coinbase_user.email, coinbase_user.country.name))
-                user_prompt = input("Type 'yes' and press ENTER to confirm. "
-                                "Type 'no' and press ENTER to be prompted for a different API key: ")
+                user_prompt = input("Type 'yes' and press ENTER to confirm.\n"
+                                    "Type 'no' and press ENTER to be prompted "
+                                    "for a different API key: ")
                 user_prompt = user_prompt.lower()
                 if user_prompt[:3] == "yes":
                     conf.set('coinbase_api_key', coinbase_api_key)
@@ -47,18 +49,18 @@ class CoinClient:
                 else:
                     print("Discaring the API KEY and API Secret you entered, and starting over...")
             except Exception as e:
-                 print(e)
-                 print("The API Key or API Secret you entered was invalid. Try again...")
+                print(e)
+                print("The API Key or API Secret you entered was invalid. Try again...")
 
     @staticmethod
     def new(conf):
-        client = CoinClient.new_from_config(conf) 
+        client = CoinClient.new_from_config(conf)
         if not client:
             client = CoinClient.new_from_prompt(conf)
         return client
 
+
 def get_accounts_by_currency(c, currency='BTC'):
-    acounts = []
     all_accounts = c.get_accounts()
     accounts = [x for x in all_accounts.data if x.currency == currency]
     while not accounts:
@@ -68,14 +70,17 @@ def get_accounts_by_currency(c, currency='BTC'):
         accounts = [x for x in all_accounts.data if x.currency == 'BTC']
     return accounts
 
+
 def user_choose_confirm(client, currency="BTC", desc="account"):
     account = None
     while not account:
         accounts = get_accounts_by_currency(client, currency)
         if not accounts:
-            print("No {}s on https://coinbase.com are visible with the API Key provided. Check permissions...")
-            input("Log on to https://coinbase.com, set up the necessary account, or change API Key permissions,\n"
-                  "and press ENTER to continue...")
+            print("No {}s on https://coinbase.com are visible with the API Key provided.\n"
+                  "Check permissions...")
+            input("Log on to https://coinbase.com, set up the necessary account,\n"
+                  "or change API Key permissions.\n"
+                  "Then press ENTER to continue...")
             continue
         if len(accounts) == 1:
             print("One {} found, called '{}', with a balance of {} {}.".format(
@@ -84,7 +89,8 @@ def user_choose_confirm(client, currency="BTC", desc="account"):
                       accounts[0].balance.amount,
                       accounts[0].balance.currency))
             print("This looks good. Press ENTER to confirm.\n\n"
-                  "If you have a very specific reason, and this is not the account you want to use, "
+                  "If you have a very specific reason,\n"
+                  "and this is not the account you want to use, "
                   "you will have to set another one up on https://coinbase.com. In that case, "
                   "type 'no' and press ENTER once another account is set up, "
                   "and you will have the option to select it\n"
@@ -95,7 +101,7 @@ def user_choose_confirm(client, currency="BTC", desc="account"):
                 return accounts[0]
         else:
             accounts_hash = collections.ordereddict()
-            for i, account in zip(range(1,len(accounts)+1),accounts):
+            for i, account in zip(range(1, len(accounts)+1), accounts):
                 accounts_hash[i] = account
 
             for account_index, account in accounts_hash.items():
@@ -111,7 +117,7 @@ def user_choose_confirm(client, currency="BTC", desc="account"):
             user_prompt = input("Select an option (1-{}) and press ENTER: ".format(
                                      len(accounts_hash)))
             try:
-                account = account_hash[int(user_prompt)]
+                account = accounts_hash[int(user_prompt)]
             except IndexError:
                 pass
 
@@ -122,9 +128,12 @@ def user_choose_payment_method(c):
         payment_methods = c.get_payment_methods()
         methods = [p for p in payment_methods.data if p.allow_withdraw and p.currency == 'USD']
         if not methods:
-            print("No accounts linked for withdrawal are visible on https://coinbase.com with the API Key provided. Check permissions...")
-            input("Log on to https://coinbase.com, set up the necessary account, or change API Key permissions,\n"
-                  "and press ENTER to continue...")
+            print("No accounts linked for withdrawal are visible on https://coinbase.com\n"
+                  "with the API Key provided.\n"
+                  "Check permissions...")
+            input("Log on to https://coinbase.com, set up the necessary account,\n"
+                  "or change API Key permissions.\n"
+                  "Then press ENTER to continue...")
             continue
         if len(methods) == 1:
             print("One {} withdrawal method found: {}".format(
@@ -142,7 +151,7 @@ def user_choose_payment_method(c):
                 return methods[0]
         else:
             methods_hash = collections.ordereddict()
-            for i, method in zip(range(1,len(methods)+1),methods):
+            for i, method in zip(range(1, len(methods)+1), methods):
                 methods_hash[i] = method
 
             for method_index, method in methods_hash.items():
@@ -153,11 +162,10 @@ def user_choose_payment_method(c):
 
             print("{} - None of the above: You will need to set up another "
                   "withdrawal method on https://coinbase.com, then select this option".format(
-                       len(methods_hash), desc))
+                       len(methods_hash)))
             user_prompt = input("Select an option (1-{}) and press ENTER: ".format(
                                      len(methods_hash)))
             try:
                 method = methods_hash[int(user_prompt)]
             except IndexError:
                 pass
-
