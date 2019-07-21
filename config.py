@@ -10,14 +10,22 @@ class Data:
 
 class Config:
     def __init__(self, conffile):
-        self.keys = ["coinbase_api_key", "coinbase_api_secret", "txid", "btc_account_id", "usd_account_id", "sell_id", "withdrawal_id", "rpc_user", "rpc_password"]
+        self.keys = ["coinbase_api_key",
+                     "coinbase_api_secret",
+                     "txid",
+                     "btc_account_id",
+                     "usd_account_id",
+                     "sell_id",
+                     "withdrawal_id",
+                     "rpc_user",
+                     "rpc_password"]
         self.data = Data()
         self.path = Path(conffile)
         if self.path.is_file():
             config_on_disk = {}
             with open(conffile, 'r') as f:
                 try:
-                    config_on_disk.update(yaml.load(f))
+                    config_on_disk.update(yaml.safe_load(f))
                 except Exception:
                     pass
             for key in self.keys:
@@ -39,9 +47,8 @@ class Config:
         self.path.open('a').close()
         os.chmod(str(self.path), stat.S_IRUSR | stat.S_IWUSR)
         with self.path.open('w') as f:
-            yaml.dump(self.data.__dict__, f)
+            yaml.safe_dump(self.data.__dict__, f, default_flow_style=False)
 
     def delete(self, attr):
         delattr(self.data, attr)
         self.save()
-        
