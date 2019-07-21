@@ -34,9 +34,7 @@ class Share:
         try:
             decoded = self.rs.decode(bytes.fromhex(self.raw_value))
         except Exception:
-            return 
+            return
         if len(decoded) == 33:
             as_string = decoded.hex()
             self.code = as_string[0:2] + "-" + as_string[2:]
-            
-
