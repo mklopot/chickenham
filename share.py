@@ -19,8 +19,8 @@ class Batch:
 
     def __eq__(self, other):
         return self.sequence == other.sequence and \
-             self.threshold == other.threshold and \
-             self.size == other.size
+            self.threshold == other.threshold and \
+            self.size == other.size
 
 
 class Share:
@@ -38,3 +38,7 @@ class Share:
         if len(decoded) == 33:
             as_string = decoded.hex()
             self.code = as_string[0:2] + "-" + as_string[2:]
+
+    def __eq__(self, other):
+        return self.raw_value == other.raw_value and \
+            self.batch == other.batch
