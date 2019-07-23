@@ -1,28 +1,44 @@
 from coinbase.wallet.client import Client
 import collections
+from termcolor import colored
 
 
 class CoinClient:
     @staticmethod
     def new_from_config(conf):
-        if conf.data.coinbase_api_key and conf.data.coinbase_api_secret:
-            try:
-                client = Client(conf.data.coinbase_api_key, conf.data.coinbase_api_secret)
-                coinbase_user = client.get_current_user()
-                print("https://coinbase.com reports the API key "
-                      "you entered is associated with {} <{}> residing "
-                      "in {}. Do you want to proceed using this account?".format(
-                          coinbase_user.name, coinbase_user.email, coinbase_user.country.name))
-                user_prompt = input("Type 'yes' and press ENTER to confirm.\n"
-                                    "Type 'no' and press ENTER to be prompted "
-                                    "for a different API key: ")
-                user_prompt = user_prompt.lower()
-                if user_prompt[:3] == "yes":
-                    return client
-            except Exception:
-                print("The previously stored API Key or API Secret was invalid, discarding...")
-                conf.delete('coinbase_api_key')
-                conf.delete('coinbase_api_secret')
+        attempt_load = True
+        while attempt_load:
+            attempt_load = False
+            if conf.data.coinbase_api_key and conf.data.coinbase_api_secret:
+                try:
+                    print(colored("Attempting to load API key", "blue"))
+                    client = Client(conf.data.coinbase_api_key, conf.data.coinbase_api_secret)
+                    coinbase_user = client.get_current_user()
+                    print("API Key Info:")
+                    print("Name: " + colored(coinbase_user.name, "blue"))
+                    print("Email: " + colored(coinbase_user.email, "blue"))
+                    print("Country: " + colored(coinbase_user.country.name, "blue"))
+                    print("Do you want to proceed using this account?")
+                    print(colored("Type ", "cyan") + colored("yes", "yellow") + 
+                          colored(" and press ENTER to confirm.\n", "cyan") +
+                          colored("Type ", "cyan") + colored("no", "yellow") +
+                          colored(" and press ENTER to be prompted "
+                                  "for a different API key.", "cyan"))
+                    user_prompt = input("Confirm (yes/no): ")
+                    user_prompt = user_prompt.lower()
+                    if user_prompt[:1] == "y":
+                        return client
+                except Exceptionas e:
+                    print(colored("The previously stored API Key or API Secret is invalid", "red"))
+                    print(colored(e, "cyan"))
+                    delete_api_key = input("Delete stored API key and API Secret? (yes/no): ")
+                    delete_api_key = delete_api_key.lower()
+                    if delete_api_key[:1] == "y":
+                        conf.delete('coinbase_api_key')
+                        conf.delete('coinbase_api_secret')
+                        return
+                    else:
+                        attempt_load = True
 
     @staticmethod
     def new_from_prompt(conf):
@@ -34,23 +50,29 @@ class CoinClient:
             try:
                 client = Client(coinbase_api_key, coinbase_api_secret)
                 coinbase_user = client.get_current_user()
-                print("https://coinbase.com reports the API key "
-                      "you entered is associated with {} <{}> residing "
-                      "in {}. Do you want to proceed using this account?".format(
-                          coinbase_user.name, coinbase_user.email, coinbase_user.country.name))
-                user_prompt = input("Type 'yes' and press ENTER to confirm.\n"
-                                    "Type 'no' and press ENTER to be prompted "
-                                    "for a different API key: ")
+                print("API Key Info:")
+                print("Name: " + colored(coinbase_user.name, "blue"))
+                print("Email: " + colored(coinbase_user.email, "blue"))
+                print("Country: " + colored(coinbase_user.country.name, "blue"))
+                print("Do you want to proceed using this account?")
+                print(colored("Type ", "cyan") + colored("yes", "yellow") + 
+                      colored(" and press ENTER to confirm.\n", "cyan") +
+                      colored("Type ", "cyan") + colored("no", "yellow") +
+                      colored(" and press ENTER to be prompted "
+                              "for a different API key.", "cyan"))
+                user_prompt = input("Confirm (yes/no): ")
                 user_prompt = user_prompt.lower()
-                if user_prompt[:3] == "yes":
+                if user_prompt[:1] == "y":
                     conf.set('coinbase_api_key', coinbase_api_key)
                     conf.set('coinbase_api_secret', coinbase_api_secret)
                     return client
                 else:
-                    print("Discaring the API KEY and API Secret you entered, and starting over...")
+                    print(colored("Discaring the API KEY and API Secret "
+                                  "you entered, starting over...", "red"))
             except Exception as e:
-                print(e)
-                print("The API Key or API Secret you entered was invalid. Try again...")
+                print(colored("The API Key or API Secret you entered is invalid", "red"))
+                print(colored(e, "cyan"))
+                print("Try again...")
 
     @staticmethod
     def new(conf):
@@ -64,8 +86,9 @@ def get_accounts_by_currency(c, currency='BTC'):
     all_accounts = c.get_accounts()
     accounts = [x for x in all_accounts.data if x.currency == currency]
     while not accounts:
-        print("No {} accounts are showing. Check API key permissions...".format(currency))
-        input()
+        print(colored("No {} accounts are showing".format(currency)), "red)
+        print(colored("Log on to https://coinbase.com and check API key permissions.", "cyan"))
+        input("Press ENTER to retry ")
         all_accounts = c.get_accounts()
         accounts = [x for x in all_accounts.data if x.currency == 'BTC']
     return accounts
