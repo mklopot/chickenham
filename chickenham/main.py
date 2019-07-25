@@ -7,6 +7,8 @@ from pathlib import Path
 import config
 import requests
 import time
+import threading
+from termcolor import colored
 
 import combine
 import input_shares
@@ -29,9 +31,10 @@ if not conf.data.txid or not requests.get(
         combiner = combine.Combiner(len(shares))
         secret = combiner(shares)
         if not secret:
-            print("The Shared Codes could not be combined. Try again. Starting over...")
+            print(colored("The Shared Codes could not be combined", "red"))
+            print("Starting over...")
         else:
-            print("Shared Codes successfully combined!")
+            print(colored("Shared Codes successfully combined!", "green"))
 
     private_key = network.keys.private(secret_exponent=int(secret, 16))
     wif = private_key.wif()
@@ -40,13 +43,44 @@ if not conf.data.txid or not requests.get(
     rpc_connection = AuthServiceProxy(
         "http://%s:%s@127.0.0.1:8332" % (conf.data.rpc_user, conf.data.rpc_password),
         timeout=4*60*60)
-    print("Local balance before import: {} BTC".format(rpc_connection.getbalance()))
-    print("Importing key and scanning the blockchain, this may take up to 3 hours, or more...")
-    rpc_connection.importprivkey(wif)
-    balance = rpc_connection.getbalance()
-    print("Local balance after import: {} BTC".format(balance))
-    r = requests.get("https://bitcoinfees.earn.com/api/v1/fees/recommended")
+    # TODO Make sure bitcoind is caught up...
+    local_balance_before_import = rpc_connection.getbalance()
+    print("\nLocal balance before import: ") +
+          colored("{} BTC".format(local_balance_before_import, "blue"))
+    print(colored("\nBeginning key import and block scan", "green"))
+    print(colored("The scan may take 3 hours or more.\n", "cyan"))
 
+    def importkey(privkey):
+        rpc_connection.importprivkey(privkey)
+
+    scanner_thread = threading.Thread(target=importkey, args=(wif,))
+    scanner_thread.run()
+    spinner = ["\u25f4 ", "\u25f7 ", "\u25f6 ", "\u25f5 "]
+    while scanner_thread.is_alive():
+        index = int(time.time() * 8 % len(spinner))
+        print("\b"*29 + spinner[index] + colored("  Scanning blocks...   ", "blue"),
+              end="",
+              flush=True)
+        time.sleep(.05)
+
+    balance = rpc_connection.getbalance()
+    print("\nLocal balance after import: " + colored("{} BTC".format(balance), "blue"))
+
+    if local_balance_before_import == balance:
+        print(colored("No balance detected on this batch of shared codes", "red"))
+        if balance > 0:
+            print("Proceed with the local balance of " +
+                  colored("{} BTC".format(balance), "blue") + "?")
+            proceed = input("Proceed (Y/n): ")
+            proceed = proceed.lower()
+            if proceed[:1] == "n":
+                exit(1)
+        else:
+            print(colored("No local balance detected", "red"))
+            print("Cannot proceed...")
+            exit(1)
+    
+    r = requests.get("https://bitcoinfees.earn.com/api/v1/fees/recommended")
     # convert to BTC/KB from satoshis/B, and quadruple it, just in case
     fee_recommended = round(r.json()["fastestFee"] * 0.00004, 8)
     fee = min(fee_recommended, 0.003)
@@ -57,7 +91,8 @@ if not conf.data.txid or not requests.get(
 else:
     txid = conf.data.txid
     c = coinbase_utils.CoinClient.new(conf)
-    # TODO check that getting accounts succeeds:
+    # TODO check that getting account objects succeeds
+    # TODO track balances
     btc_account = c.get_account(conf.data.btc_account_id)
     usd_account = c.get_account(conf.data.usd_account_id)
 
