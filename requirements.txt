@@ -1,6 +1,0 @@
-coinbase
-reedsolo
-python-bitcoinrpc
-pycoin
-termcolor
-
