@@ -84,7 +84,7 @@ if not conf.data.txid or not requests.get(
     # convert to BTC/KB from satoshis/B, and quadruple it, just in case
     fee_recommended = round(r.json()["fastestFee"] * 0.00004, 8)
     fee = min(fee_recommended, 0.003)
-    print("Setting transaction fee to {} BTC".format(fee))
+    print("Setting transaction fee to " + colored("{} BTC".format(fee), "blue") + " per KB")
     rpc_connection.settxfee(fee)
     txid = rpc_connection.sendtoaddress(deposit_address, balance, "", "", True)
     conf.set('txid', txid)
@@ -97,15 +97,21 @@ else:
     usd_account = c.get_account(conf.data.usd_account_id)
 
 if not conf.data.sell_id:
-    print("On-blockchain transfer has been initiated.\n"
-          "Transaction ID: " + txid)
-    print("To complete the transfer, 6 confirmations are required.\n"
-          "This usually takes less than two hours, but sometimes may take as long as a few days...")
+    print(colored("On-blockchain transfer initiated", "green"))
+    print("Transaction ID: " + colored(txid, "blue"))
+    print("To complete the transfer, 6 confirmations are required.")
+    print(colored("This step usually takes less than two hours, "
+                  "but sometimes may take as long as a few days.", "cyan"))
     confirmations = 0
-    print("{}Last checked at: [{}]     Confirmations: {}".format(
-                "\b"*100,
-                time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()),
-                confirmations),
+    print("Last checked at: " +
+          colored("[{}]\n".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
+                                                time.localtime())),
+                  "yellow"))
+    if confirmations > 5:
+        color = "green"
+    else:
+        color = "blue"
+    print("Confirmations: " + colored("{}".format(confirmations), color))
           end="",
           flush=True)
     while confirmations < 6:
@@ -117,14 +123,20 @@ if not conf.data.sell_id:
         time.sleep(20)
         current_block_height = int(requests.get("https://blockchain.info/q/getblockcount").text)
         confirmations = current_block_height - tx_block_height + 1
-        print("{}Last checked at: [{}]     Confirmations: {}".format(
-                  "\b"*100,
-                  time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()),
-                  confirmations),
+        print("{}Last checked at: ".format("\b" * 50) +
+              colored("[{}]\n".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
+                                                    time.localtime())),
+                      "yellow"))
+        if confirmations > 5:
+            color = "green"
+        else:
+            color = "blue"
+        print("Confirmations: " + colored("{}".format(confirmations), color))
               end="",
               flush=True)
         time.sleep(20)
-    print("Transfer transaction confirmation complete.")
+        print("\x1b[2A")  # Go up two lines
+    print(colored("Transfer transaction confirmation complete", "green"))
     # TODO check coinbase balance here...
     print("Initiating a sale from BTC to USD...")
     time.sleep(30)  # just in case coinbase needs to catch up
@@ -141,6 +153,7 @@ else:
     print("Retrieving previous sell information...")
     # TODO check that getting the sell object succeeds
     sell = btc_account.get_sell(conf.data.sell_id)
+    # TODO show sell info
 
 print("Waiting for sell completion...")
 while sell.status != 'completed':
@@ -186,4 +199,4 @@ conf.delete('txid')
 conf.delete('sell_id')
 conf.delete('withdrawal_id')
 
-print("Done.")
+print(colored("Done", "green"))
