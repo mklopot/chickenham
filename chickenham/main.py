@@ -124,7 +124,7 @@ if not conf.data.sell_id:
         current_block_height = int(requests.get("https://blockchain.info/q/getblockcount").text)
         confirmations = current_block_height - tx_block_height + 1
         print("{}Last checked at: ".format("\b" * 50) +
-              colored("[{}]\n".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
+               colored("{}\n".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
                                                     time.localtime())),
                       "yellow"))
         if confirmations > 5:
@@ -137,9 +137,11 @@ if not conf.data.sell_id:
         time.sleep(20)
         print("\x1b[2A")  # Go up two lines
     print(colored("Transfer transaction confirmation complete", "green"))
+
     # TODO check coinbase balance here...
     print("Initiating a sale from BTC to USD...")
     time.sleep(30)  # just in case coinbase needs to catch up
+
     fiat_accounts = [account for account in c.get_payment_methods().data
                      if account.type == 'fiat_account']
     usd_account_payment = [account for account in fiat_accounts
@@ -155,16 +157,22 @@ else:
     sell = btc_account.get_sell(conf.data.sell_id)
     # TODO show sell info
 
-print("Waiting for sell completion...")
+print("Waiting for SELL action to complete...")
 while sell.status != 'completed':
     sell.refresh()
-    print("{}Last checked at: [{}]     Sell status: {}".format(
-              "\b"*100,
-              time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()),
-              sell.status),
-          end="",
-          flush=True)
+    status = sell.status
+    if status == "completed":
+        color = "green"
+    else:
+        color = "blue"    
+
+    print("{}Last checked at: ".format("\b"*100) +
+          colored("{}".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
+                                            time.localtime())),
+                  "yellow"))
+    print("Status: " + colored(status, color))
     time.sleep(10)
+    print("\x1b[2A")  # Go up two lines
 
 if not conf.data.withdrawal_id:
     payment_methods = c.get_payment_methods()
@@ -172,7 +180,7 @@ if not conf.data.withdrawal_id:
                                 if p.allow_withdraw and p.currency == 'USD']
     payment_method = coinbase_utils.user_choose_payment_method(c)
 
-    print("Withdrawing funds from https://coinbase.com to the linked account...")
+    print("Starting withdrawal of funds from https://coinbase.com to the linked account...")
     usd_account.refresh()
     withdrawal = c.withdraw(usd_account.id,
                             amount=usd_account.balance.amount,
@@ -185,13 +193,19 @@ else:
 print("Waiting for withdrawal completion...")
 while withdrawal.status != 'completed':
     withdrawal.refresh()
-    print("{}Last checked at: [{}]     Withdrawal status: {}".format(
-              "\b"*100,
-              time.strftime('%Y-%m-%d %I:%M:%S %p %Z', time.localtime()),
-              withdrawal.status),
-          end="",
-          flush=True)
+    status = withdrawal.status
+    if status == "completed":
+        color = "green"
+    else:
+        color = "blue"
+
+    print("{}Last checked at: ".format("\b" * 50) +
+               colored("[{}]\n".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
+                                                     time.localtime())),
+                       "yellow"))
+    print("Status: " + colored(status, color))
     time.sleep(10)
+    print("\x1b[2A")  # Go up two lines
 
 conf.delete('btc_account')
 conf.delete('usd_account')
