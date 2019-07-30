@@ -173,7 +173,7 @@ while sell.status != 'completed':
                   "yellow"))
     print("Status: " + colored(status, color))
     time.sleep(10)
-    print("\x1b[2A")  # Go up two lines
+    print("\x1b[3A")  # Go up two lines
 
 if not conf.data.withdrawal_id:
     payment_methods = c.get_payment_methods()
@@ -201,7 +201,7 @@ while withdrawal.status != 'completed':
         color = "blue"
 
     print("{}Last checked at: ".format("\b" * 50) +
-               colored("[{}]".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
+               colored("{}".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
                                                      time.localtime())),
                        "yellow"))
     print("Status: " + colored(status, color))

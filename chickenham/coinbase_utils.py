@@ -18,6 +18,15 @@ class CoinClient:
                     print("Name: " + colored(coinbase_user.name, "blue"))
                     print("Email: " + colored(coinbase_user.email, "blue"))
                     print("Country: " + colored(coinbase_user.country.name, "blue"))
+                    if coinbase_user.tiers.completed_description == 'Level 3':
+                        print("Verification: " +
+                              colored(coinbase_user.tiers.completed_description, "green"))
+                    else:
+                        print("Verification: " +
+                              colored(coinbase_user.tiers.completed_description, "red"))
+                        print(colored("You must complete ", "cyan") +
+                              colored("Level 3", "yellow") +
+                              colored(" account verification at https://coinbase.com.", "cyan"))
                     print("Do you want to proceed using this account?")
                     print(colored("Type ", "cyan") + colored("yes", "yellow") +
                           colored(" and press ENTER to confirm.\n", "cyan") +
