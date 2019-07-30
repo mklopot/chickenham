@@ -45,8 +45,8 @@ if not conf.data.txid or not requests.get(
         timeout=4*60*60)
     # TODO Make sure bitcoind is caught up...
     local_balance_before_import = rpc_connection.getbalance()
-    print("\nLocal balance before import: ") +
-          colored("{} BTC".format(local_balance_before_import, "blue"))
+    print("\nLocal balance before import: " +
+          colored("{} BTC".format(local_balance_before_import), "blue"))
     print(colored("\nBeginning key import and block scan", "green"))
     print(colored("The scan may take 3 hours or more.\n", "cyan"))
 
@@ -54,7 +54,7 @@ if not conf.data.txid or not requests.get(
         rpc_connection.importprivkey(privkey)
 
     scanner_thread = threading.Thread(target=importkey, args=(wif,))
-    scanner_thread.run()
+    scanner_thread.start()
     spinner = ["\u25f4 ", "\u25f7 ", "\u25f6 ", "\u25f5 "]
     while scanner_thread.is_alive():
         index = int(time.time() * 8 % len(spinner))
@@ -64,6 +64,7 @@ if not conf.data.txid or not requests.get(
         time.sleep(.05)
 
     balance = rpc_connection.getbalance()
+    print(colored("\nScan complete", "green"))
     print("\nLocal balance after import: " + colored("{} BTC".format(balance), "blue"))
 
     if local_balance_before_import == balance:
@@ -111,7 +112,7 @@ if not conf.data.sell_id:
         color = "green"
     else:
         color = "blue"
-    print("Confirmations: " + colored("{}".format(confirmations), color))
+    print("Confirmations: " + colored("{}".format(confirmations), color),
           end="",
           flush=True)
     while confirmations < 6:
@@ -131,7 +132,7 @@ if not conf.data.sell_id:
             color = "green"
         else:
             color = "blue"
-        print("Confirmations: " + colored("{}".format(confirmations), color))
+        print("Confirmations: " + colored("{}".format(confirmations), color),
               end="",
               flush=True)
         time.sleep(20)
@@ -200,15 +201,15 @@ while withdrawal.status != 'completed':
         color = "blue"
 
     print("{}Last checked at: ".format("\b" * 50) +
-               colored("[{}]\n".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
+               colored("[{}]".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
                                                      time.localtime())),
                        "yellow"))
     print("Status: " + colored(status, color))
     time.sleep(10)
-    print("\x1b[2A")  # Go up two lines
+    print("\x1b[3A")  # Go up two lines
 
-conf.delete('btc_account')
-conf.delete('usd_account')
+conf.delete('btc_account_id')
+conf.delete('usd_account_id')
 conf.delete('txid')
 conf.delete('sell_id')
 conf.delete('withdrawal_id')
