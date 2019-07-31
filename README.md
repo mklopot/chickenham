@@ -4,7 +4,9 @@
 
 [X] spinner for rescan
 
-[] error handling for offline, etc
+[X] error handling for offline, etc
+
+[ ] error handling for RPC endpoint not available
 
 [X] prompt before invalidating creds
 
