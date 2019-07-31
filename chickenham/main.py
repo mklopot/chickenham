@@ -64,7 +64,7 @@ if not conf.data.txid or not requests.get(
         "http://%s:%s@127.0.0.1:8332" % (conf.data.rpc_user, conf.data.rpc_password),
         timeout=4*60*60)
     # TODO Make sure bitcoind is caught up...
-    local_balance_before_import = rpc_connection.getbalance()
+    local_balance_before_import = float(rpc_connection.getbalance())
     print("\nLocal balance before import: " +
           colored("{} BTC".format(local_balance_before_import), "blue"))
     print(colored("\nBeginning key import and block scan", "green"))
@@ -83,7 +83,7 @@ if not conf.data.txid or not requests.get(
               flush=True)
         time.sleep(.05)
 
-    balance = rpc_connection.getbalance()
+    balance = round(rpc_connection.getbalance(), 8)
     print(colored("\nScan complete", "green"))
     print("\nLocal balance after import: " + colored("{} BTC".format(balance), "blue"))
 
