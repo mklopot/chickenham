@@ -110,7 +110,7 @@ def user_choose_confirm(client, currency="BTC", desc="account"):
         if not accounts:
             continue
         if len(accounts) == 1:
-            print("\nOne {} {} found:".format(currency, desc))
+            print("\nOne {} found:".format(desc))
             print("Name: " + colored("{}".format(accounts[0].name), "blue"))
             print("Balance: " + colored("{} {}".format(accounts[0].balance.amount,
                                                        accounts[0].balance.currency), "blue"))
@@ -121,7 +121,7 @@ def user_choose_confirm(client, currency="BTC", desc="account"):
             print(colored("In that case, type ", "cyan") + colored("no", "yellow") +
                   colored(" and press ENTER once another account is set up,\n"
                           "and you will have the option to select it.\n", "cyan"))
-            user_input = input("Use this account (n/Y): ")
+            user_input = input("Use this account (y/N): ")
             user_input = user_input.lower()
             if user_input[:1] == "y":
                 return accounts[0]

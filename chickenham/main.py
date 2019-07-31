@@ -53,6 +53,7 @@ if not conf.data.txid or not requests.get(
         print(chr(27) + "[2J" + chr(27) + "[H")  # Clear Screen
         shares = [share.code for share in inputter.input_batch()]
         combiner = combine.Combiner(len(shares))
+        print(chr(27) + "[2J" + chr(27) + "[H")  # Clear Screen
         secret = combiner(shares)
         if not secret:
             print(colored("The Shared Codes could not be combined", "red"))
@@ -76,7 +77,7 @@ if not conf.data.txid or not requests.get(
     # TODO Make sure bitcoind is caught up...
     local_balance_before_import = float(rpc_connection.getbalance())
     print("\nLocal balance before import: " +
-          colored("{} BTC".format(local_balance_before_import), "blue"))
+          colored("{:.8f} BTC".format(local_balance_before_import), "blue"))
     print(colored("\nBeginning key import and block scan", "green"))
     print(colored("The scan may take 3 hours or more.\n", "cyan"))
 
@@ -95,7 +96,7 @@ if not conf.data.txid or not requests.get(
 
     balance = round(rpc_connection.getbalance(), 8)
     print(colored("\nScan complete", "green"))
-    print("\nLocal balance after import: " + colored("{} BTC".format(balance), "blue"))
+    print("\nLocal balance after import: " + colored("{:.8f} BTC".format(balance), "blue"))
 
     if local_balance_before_import == balance:
         print(colored("No balance detected on this batch of shared codes", "red"))
@@ -128,8 +129,30 @@ else:
     c = coinbase_utils.CoinClient.new(conf)
     # TODO check that getting account objects succeeds
     # TODO track balances
-    btc_account = c.get_account(conf.data.btc_account_id)
-    usd_account = c.get_account(conf.data.usd_account_id)
+    btc_account = None
+    usd_account = None
+    while not btc_account or not usd_account:
+        try:
+            btc_account = c.get_account(conf.data.btc_account_id)
+            usd_account = c.get_account(conf.data.usd_account_id)
+        except Exception as e:
+            print(colored("Error referencing previously used BTC or USD "
+                          "account on https://coinbase.com", "red"))
+            print(colored(e, "cyan"))
+            print("Check API permissions and retry, or log on to " +
+                  colored("https://coinbase.com", "yellow") +
+                  " and manually complete the sell and withdraw.")
+            retry = input("Retry (y/N): ")
+            retry = retry.lower()
+            if retry[:1] == "y":
+                continue
+            conf.delete('btc_account_id')
+            conf.delete('usd_account_id')
+            conf.delete('txid')
+            conf.delete('sell_id')
+            conf.delete('withdrawal_id')
+            print("Exiting...")
+            exit(1)
 
 if not conf.data.sell_id:
     print(colored("On-blockchain transfer initiated", "green"))
@@ -139,7 +162,7 @@ if not conf.data.sell_id:
                   "but sometimes may take as long as a few days.", "cyan"))
     confirmations = 0
     print("Last checked at: " +
-          colored("[{}]\n".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
+          colored("{}".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
                                                 time.localtime())),
                   "yellow"))
     if confirmations > 5:
@@ -149,7 +172,6 @@ if not conf.data.sell_id:
     print("Confirmations: " + colored("{}".format(confirmations), color),
           end="",
           flush=True)
-    print("\x1b[2A")  # Go up two lines
     while confirmations < 6:
         try:
             r = requests.get("http://blockchain.info/tx/{}?show_adv=false&format=json".format(txid))
@@ -162,6 +184,7 @@ if not conf.data.sell_id:
         except Exception:
             continue
         confirmations = current_block_height - tx_block_height + 1
+        print("\x1b[2A")  # Go up two lines
         print("{}Last checked at: ".format("\b" * 50) +
               colored("{}".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
                                                 time.localtime())),
@@ -174,8 +197,7 @@ if not conf.data.sell_id:
               end="",
               flush=True)
         time.sleep(20)
-        print("\x1b[2A")  # Go up two lines
-    print(colored("Transfer transaction confirmation complete", "green"))
+    print(colored("Transfer transaction confirmed on the blockchain", "green"))
 
     # TODO check coinbase balance here...
     print("Initiating a sale from BTC to USD...")
