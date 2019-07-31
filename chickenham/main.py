@@ -19,25 +19,35 @@ if not conf.data.txid or not requests.get(
         "http://blockchain.info/tx/{}?show_adv=false&format=json".format(conf.data.txid)):
     c = coinbase_utils.CoinClient.new(conf)
     btc_account = coinbase_utils.user_choose_confirm(c, 'BTC', 'Bitcoin account')
-    deposit_address = btc_account.create_address().address
+    try:
+        deposit_address = btc_account.create_address().address
+    except Exception as e:
+        print(colored("Error obtaining deposit address", "red"))
+        print(colored(e, "cyan"))
     conf.set('btc_account_id', btc_account.id)
     usd_account = coinbase_utils.user_choose_confirm(c, "USD", 'USD account')
     conf.set('usd_account_id', usd_account.id)
-    secret = None
-    inputter = input_shares.UserInput()
-    print(chr(27) + "[2J" + chr(27) + "[H")  # Clear Screen
-    while not secret:
+    wif = None
+    while not wif:
+        inputter = input_shares.UserInput()
+        print(chr(27) + "[2J" + chr(27) + "[H")  # Clear Screen
         shares = [share.code for share in inputter.input_batch()]
         combiner = combine.Combiner(len(shares))
         secret = combiner(shares)
         if not secret:
             print(colored("The Shared Codes could not be combined", "red"))
             print("Starting over...")
+            continue
         else:
-            print(colored("Shared Codes successfully combined!", "green"))
+            try:
+                private_key = network.keys.private(secret_exponent=int(secret, 16))
+                wif = private_key.wif()
+            except Exception:
+                print(colored("The Shared Codes could not be combined", "red"))
+                print("Starting over...")
+                continue
 
-    private_key = network.keys.private(secret_exponent=int(secret, 16))
-    wif = private_key.wif()
+    print(colored("Shared Codes successfully combined!", "green"))
 
     # rpc_user and rpc_password are set in the bitcoin.conf file
     rpc_connection = AuthServiceProxy(
@@ -74,17 +84,21 @@ if not conf.data.txid or not requests.get(
                   colored("{} BTC".format(balance), "blue") + "?")
             proceed = input("Proceed (Y/n): ")
             proceed = proceed.lower()
-            if proceed[:1] == "n":
+            if proceed[:1] != "y":
                 exit(1)
         else:
             print(colored("No local balance detected", "red"))
             print("Cannot proceed...")
             exit(1)
-    
-    r = requests.get("https://bitcoinfees.earn.com/api/v1/fees/recommended")
-    # convert to BTC/KB from satoshis/B, and quadruple it, just in case
-    fee_recommended = round(r.json()["fastestFee"] * 0.00004, 8)
-    fee = min(fee_recommended, 0.003)
+    try:
+        r = requests.get("https://bitcoinfees.earn.com/api/v1/fees/recommended")
+        # convert to BTC/KB from satoshis/B, and quadruple it, just in case
+        fee_recommended = round(r.json()["fastestFee"] * 0.00004, 8)
+        fee = min(fee_recommended, 0.003)
+    except Exception as e:
+        print(colored("Could not retrieve recommended fee", "red"))
+        print(colored(e, "cyan"))
+        fee = 0.002
     print("Setting transaction fee to " + colored("{} BTC".format(fee), "blue") + " per KB")
     rpc_connection.settxfee(fee)
     txid = rpc_connection.sendtoaddress(deposit_address, balance, "", "", True)
@@ -115,18 +129,22 @@ if not conf.data.sell_id:
     print("Confirmations: " + colored("{}".format(confirmations), color),
           end="",
           flush=True)
+    print("\x1b[2A")  # Go up two lines
     while confirmations < 6:
-        r = requests.get("http://blockchain.info/tx/{}?show_adv=false&format=json".format(txid))
         try:
+            r = requests.get("http://blockchain.info/tx/{}?show_adv=false&format=json".format(txid))
             tx_block_height = r.json()["block_height"]
         except Exception:
             continue
         time.sleep(20)
-        current_block_height = int(requests.get("https://blockchain.info/q/getblockcount").text)
+        try:
+            current_block_height = int(requests.get("https://blockchain.info/q/getblockcount").text)
+        except Exception:
+            continue
         confirmations = current_block_height - tx_block_height + 1
         print("{}Last checked at: ".format("\b" * 50) +
-               colored("{}\n".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
-                                                    time.localtime())),
+              colored("{}".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
+                                                time.localtime())),
                       "yellow"))
         if confirmations > 5:
             color = "green"
@@ -154,8 +172,28 @@ if not conf.data.sell_id:
     conf.set("sell_id", sell.id)
 else:
     print("Retrieving previous sell information...")
-    # TODO check that getting the sell object succeeds
-    sell = btc_account.get_sell(conf.data.sell_id)
+    sell = None
+    while not sell:
+        try:
+            sell = btc_account.get_sell(conf.data.sell_id)
+        except Exception as e:
+            print(colored("Could not retrieve existing SELL info", "red"))
+            print(colored(e, "cyan"))
+            print(colored("Verify API permissions.", "cyan"))
+            retry = input("Retry (y/N): ")
+            retry = retry.lower()
+            if retry[:1] != "y":
+                print(colored("Abandoning workflow", "red"))
+                print(colored("You may need to manually log in to ", "cyan") +
+                      colored("https://coinbase.com\n", "yellow") +
+                      colored("and initiate a withdrawal.", "cyan"))
+                conf.delete('btc_account_id')
+                conf.delete('usd_account_id')
+                conf.delete('txid')
+                conf.delete('sell_id')
+                conf.delete('withdrawal_id')
+                print("Exiting...")
+                exit(1)
     # TODO show sell info
 
 print("Waiting for SELL action to complete...")
@@ -165,7 +203,7 @@ while sell.status != 'completed':
     if status == "completed":
         color = "green"
     else:
-        color = "blue"    
+        color = "blue"
 
     print("{}Last checked at: ".format("\b"*100) +
           colored("{}".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
@@ -189,7 +227,21 @@ if not conf.data.withdrawal_id:
                             payment_method=payment_method.id)
     conf.set("withdrawal_id", withdrawal.id)
 else:
-    withdrawal = usd_account.get_withdrawal(conf.data.withdrawal_id)
+    print("Attempting to load existing withdrawal info")
+    try:
+        withdrawal = usd_account.get_withdrawal(conf.data.withdrawal_id)
+    except Exception as e:
+        print(colored("Error loading withdrawal info", "red"))
+        print(colored(e, "cyan"))
+        print(colored("To track the withdrawal, log on to ", "cyan") +
+              colored("https://coinbase.com", "yellow"))
+        conf.delete('btc_account_id')
+        conf.delete('usd_account_id')
+        conf.delete('txid')
+        conf.delete('sell_id')
+        conf.delete('withdrawal_id')
+        print("Exiting...")
+        exit(1)
 
 print("Waiting for withdrawal completion...")
 while withdrawal.status != 'completed':
@@ -199,11 +251,10 @@ while withdrawal.status != 'completed':
         color = "green"
     else:
         color = "blue"
-
     print("{}Last checked at: ".format("\b" * 50) +
-               colored("{}".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
-                                                     time.localtime())),
-                       "yellow"))
+          colored("{}".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
+                                            time.localtime())),
+                  "yellow"))
     print("Status: " + colored(status, color))
     time.sleep(10)
     print("\x1b[3A")  # Go up two lines

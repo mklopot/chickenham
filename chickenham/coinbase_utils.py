@@ -71,13 +71,13 @@ class CoinClient:
                               "for a different API key.", "cyan"))
                 user_prompt = input("Confirm (yes/no): ")
                 user_prompt = user_prompt.lower()
-                if user_prompt[:1] == "y":
+                if user_prompt[:1] != "y":
+                    print(colored("Discarding the API KEY and API Secret "
+                                  "you entered, starting over...", "red"))
+                else:
                     conf.set('coinbase_api_key', coinbase_api_key)
                     conf.set('coinbase_api_secret', coinbase_api_secret)
                     return client
-                else:
-                    print(colored("Discarding the API KEY and API Secret "
-                                  "you entered, starting over...", "red"))
             except Exception as e:
                 print(colored("The API Key or API Secret you entered is invalid", "red"))
                 print(colored(e, "cyan"))
@@ -121,9 +121,9 @@ def user_choose_confirm(client, currency="BTC", desc="account"):
             print(colored("In that case, type ", "cyan") + colored("no", "yellow") +
                   colored(" and press ENTER once another account is set up,\n"
                           "and you will have the option to select it.\n", "cyan"))
-            user_input = input("Use this account (Y/n): ")
+            user_input = input("Use this account (n/Y): ")
             user_input = user_input.lower()
-            if user_input[:1] != "n":
+            if user_input[:1] == "y":
                 return accounts[0]
         else:
             print("\nSelect a {} account:".format(currency))
@@ -174,9 +174,9 @@ def user_choose_payment_method(c):
             print(colored("In that case, type ", "cyan") + colored("no", "yellow") +
                   colored(" and press ENTER once another account is set up,\n"
                           "and you will have the option to select it.", "cyan"))
-            user_input = input("Use this account (Y/n): ")
+            user_input = input("Use this account (y/N): ")
             user_input = user_input.lower()
-            if user_input[:1] != "n":
+            if user_input[:1] == "y":
                 return methods[0]
         else:
             print("\nSelect a linked USD withdrawal account:")
