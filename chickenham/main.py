@@ -9,6 +9,7 @@ import requests
 import time
 import threading
 from termcolor import colored
+import os
 
 import combine
 import input_shares
@@ -22,7 +23,16 @@ print("      |_| |_| \___// \___\__|\__|")
 print("  ___ _    _    _ |__/       _  _ ")
 print(" / __| |_ (_)__| |_____ _ _ | || |__ _ _ __  ")
 print("| (__| ' \| / _| / / -_) ' \| __ / _` | '  \ ")
-print(" \___|_||_|_\__|_\_\___|_||_|_||_\__,_|_|_|_|")
+print(" \___|_||_|_\__|_\_\___|_||_|_||_\__,_|_|_|_|\n")
+
+ping = False
+while not ping:
+    ping = not os.system("ping -q -c1 8.8.8.8 > /dev/null")
+    if not ping:
+        print("\b"* 30 +
+              colored("Connect to the Internet to continue", "red"),
+              end = "",
+              flush = True)
 
 conf = config.Config(Path.home().joinpath('.chiknhamrc'))
 if not conf.data.txid or not requests.get(
