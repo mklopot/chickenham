@@ -14,6 +14,16 @@ import combine
 import input_shares
 import coinbase_utils
 
+
+print("       ___          _        _   ")
+print("      | _ \_ _ ___ (_)___ __| |_ ")
+print("      |  _/ '_/ _ \| / -_) _|  _|")
+print("      |_| |_| \___// \___\__|\__|")
+print("  ___ _    _    _ |__/       _  _ ")
+print(" / __| |_ (_)__| |_____ _ _ | || |__ _ _ __  ")
+print("| (__| ' \| / _| / / -_) ' \| __ / _` | '  \ ")
+print(" \___|_||_|_\__|_\_\___|_||_|_||_\__,_|_|_|_|")
+
 conf = config.Config(Path.home().joinpath('.chiknhamrc'))
 if not conf.data.txid or not requests.get(
         "http://blockchain.info/tx/{}?show_adv=false&format=json".format(conf.data.txid)):
