@@ -8,39 +8,38 @@ class UserInput:
         self.shares = []
 
     def get_valid_batch_number(self):
-            while True:
-                print("\nEnter " + colored("Batch Number", "grey", "on_yellow") +
-                      " for Shared Code " + colored("{}", "blue").format(
-                          len(self.shares) + 1))
-                print("and press ENTER")
-                print(colored("(or just press ENTER to start this batch over)", "cyan"))
-                batch_input = input("Batch Number: ")
-                if not batch_input:
-                    return
-                batch = Batch(batch_input)
-                if not batch.valid:
-                    print(colored("Invalid Batch Number\n", "red"))
-                    print(colored("A batch number must contain a number followed by a slash,\n"
-                                  "another number, followed by a dash, then one more number.\n"
-                                  "For example: ", "cyan") + colored("5/8-19", "yellow"))
-                    print("Try again...")
-                    continue
-                if self.batch is not None:
-                    if batch == self.batch:
-                        print(colored("OK", "green"))
-                        return batch
-                    else:
-                        print(colored("Non-matching Batch Number\n", "red"))
-                        print(colored("All Batch Numbers within a single batch must match.\n"
-                                      "If a Shared Code is marked with a "
-                                      "non-matching Batch Number,\n"
-                                      "do not try to use it as part of this batch.", "cyan"))
-                        print("Try again...")
-                        continue
-                else:
-                    self.batch = batch
+        while True:
+            print("\nEnter " + colored("Batch Number", "grey", "on_yellow") +
+                  " for Shared Code " + colored("{}", "blue").format(len(self.shares) + 1))
+            print("and press ENTER")
+            print(colored("(or just press ENTER to start this batch over)", "cyan"))
+            batch_input = input("Batch Number: ")
+            if not batch_input:
+                return
+            batch = Batch(batch_input)
+            if not batch.valid:
+                print(colored("Invalid Batch Number\n", "red"))
+                print(colored("A batch number must contain a number followed by a slash,\n"
+                              "another number, followed by a dash, then one more number.\n"
+                              "For example: ", "cyan") + colored("5/8-19", "yellow"))
+                print("Try again...")
+                continue
+            if self.batch is not None:
+                if batch == self.batch:
                     print(colored("OK", "green"))
                     return batch
+                else:
+                    print(colored("Non-matching Batch Number\n", "red"))
+                    print(colored("All Batch Numbers within a single batch must match.\n"
+                                  "If a Shared Code is marked with a "
+                                  "non-matching Batch Number,\n"
+                                  "do not try to use it as part of this batch.", "cyan"))
+                    print("Try again...")
+                    continue
+            else:
+                self.batch = batch
+                print(colored("OK", "green"))
+                return batch
 
     def get_share(self):
         while True:

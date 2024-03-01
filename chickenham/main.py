@@ -16,23 +16,23 @@ import input_shares
 import coinbase_utils
 
 
-print("       ___          _        _   ")
-print("      | _ \_ _ ___ (_)___ __| |_ ")
-print("      |  _/ '_/ _ \| / -_) _|  _|")
-print("      |_| |_| \___// \___\__|\__|")
-print("  ___ _    _    _ |__/       _  _ ")
-print(" / __| |_ (_)__| |_____ _ _ | || |__ _ _ __  ")
-print("| (__| ' \| / _| / / -_) ' \| __ / _` | '  \ ")
-print(" \___|_||_|_\__|_\_\___|_||_|_||_\__,_|_|_|_|\n")
+print(r"       ___          _        _   ")
+print(r"      | _ \_ _ ___ (_)___ __| |_ ")
+print(r"      |  _/ '_/ _ \| / -_) _|  _|")
+print(r"      |_| |_| \___// \___\__|\__|")
+print(r"  ___ _    _    _ |__/       _  _ ")
+print(r" / __| |_ (_)__| |_____ _ _ | || |__ _ _ __  ")
+print(r"| (__| ' \| / _| / / -_) ' \| __ / _` | '  \ ")
+print(r" \___|_||_|_\__|_\_\___|_||_|_||_\__,_|_|_|_|\n")
 
 ping = False
 while not ping:
     ping = not os.system("ping -q -c1 8.8.8.8 > /dev/null")
     if not ping:
-        print("\b"* 30 +
+        print("\b" * 30 +
               colored("Connect to the Internet to continue", "red"),
-              end = "",
-              flush = True)
+              end="",
+              flush=True)
 
 conf = config.Config(Path.home().joinpath('.chiknhamrc'))
 if not conf.data.txid or not requests.get(
@@ -163,7 +163,7 @@ if not conf.data.sell_id:
     confirmations = 0
     print("Last checked at: " +
           colored("{}".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
-                                                time.localtime())),
+                                            time.localtime())),
                   "yellow"))
     if confirmations > 5:
         color = "green"
