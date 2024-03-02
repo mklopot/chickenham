@@ -164,6 +164,22 @@ files = [
 ]
 
 [[package]]
+name = "mock"
+version = "5.1.0"
+description = "Rolling backport of unittest.mock for all Pythons"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "mock-5.1.0-py3-none-any.whl", hash = "sha256:18c694e5ae8a208cdb3d2c20a993ca1a7b0efa258c247a1e565150f477f83744"},
+    {file = "mock-5.1.0.tar.gz", hash = "sha256:5e96aad5ccda4718e0a229ed94b2024df75cc2d55575ba5762d31f5767b8767d"},
+]
+
+[package.extras]
+build = ["blurb", "twine", "wheel"]
+docs = ["sphinx"]
+test = ["pytest", "pytest-cov"]
+
+[[package]]
 name = "pycodestyle"
 version = "2.11.1"
 description = "Python style guide checker"
@@ -323,4 +339,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1"
-content-hash = "4aac427d7ad81ed98d9f04d9bdb4ae7c96819b58a02ab036d24abfd6172a2261"
+content-hash = "dc88a2ce75af9c1644d5d56e27fef69db3312dad57ff738a70647fe860ad31ab"

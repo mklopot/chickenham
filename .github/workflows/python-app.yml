@@ -31,6 +31,7 @@ jobs:
       run: |
         poetry install
         poetry add flake8
+        poetry add mock
     - name: Lint with flake8
       run: |
         # The GitHub editor is 127 chars wide

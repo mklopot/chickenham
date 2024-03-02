@@ -25,4 +25,5 @@ pycoin = "*"
 termcolor = "*"
 python = "^3.8.1"
 flake8 = "^7.0.0"
+mock = "^5.1.0"
 
