@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "chickenham"
+version = "0.1.0"
+description = "Social secrets management"
+license = "GPL-2.0-only"
+authors = [
+	"Michael Klopot <michael.klopot+chickenham@gmail.com>",
+]
+repository = "https://github.com/mklopot/chickenham"
+keywords = ["secrets", "cryptocurrency"]
+readme = "README.md"
+classifiers = ["Intended Audience :: Financial and Insurance Industry",
+               "Topic :: Security :: Cryptography"]
+packages = [{ include = "chickenham" }]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.dependencies]
+coinbase = "*"
+reedsolo = "^1.7.0"
+python-bitcoinrpc = "*"
+pycoin = "*"
+termcolor = "*"
+python = "^3.7"
+
