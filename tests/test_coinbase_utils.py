@@ -49,7 +49,6 @@ class TestInteractiveOneOption(TestCase):
                          PaymentMethod("Swiss Bank", "CHF"),
                          PaymentMethod("No Withdrawal Bank", "USD", False)])
 
-    
     def test_user_choose_confirm_one_USD(self):
         with patch('builtins.input', return_value='y'):
             result = coinbase_utils.user_choose_confirm(self.c, "USD")
