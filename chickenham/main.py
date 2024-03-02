@@ -11,19 +11,12 @@ import threading
 from termcolor import colored
 import os
 
+import cli
 import combine
 import input_shares
 import coinbase_utils
 
-
-print(r"       ___          _        _   ")
-print(r"      | _ \_ _ ___ (_)___ __| |_ ")
-print(r"      |  _/ '_/ _ \| / -_) _|  _|")
-print(r"      |_| |_| \___// \___\__|\__|")
-print(r"  ___ _    _    _ |__/       _  _ ")
-print(r" / __| |_ (_)__| |_____ _ _ | || |__ _ _ __  ")
-print(r"| (__| ' \| / _| / / -_) ' \| __ / _` | '  \ ")
-print(r" \___|_||_|_\__|_\_\___|_||_|_||_\__,_|_|_|_|\n")
+cli.greeting()
 
 ping = False
 while not ping:
