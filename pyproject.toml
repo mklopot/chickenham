@@ -23,5 +23,6 @@ reedsolo = "^1.7.0"
 python-bitcoinrpc = "*"
 pycoin = "*"
 termcolor = "*"
-python = "^3.7"
+python = "^3.8.1"
+flake8 = "^7.0.0"
 
