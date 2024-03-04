@@ -9,25 +9,18 @@ import requests
 import time
 import threading
 from termcolor import colored
-import os
 
 import cli
 import combine
 import input_shares
 import coinbase_utils
+from connectivity import connectivity_check
 
 cli.greeting()
+cli.notify_until(connectivity_check, "Connect to the Internet to continue (or press Ctrl-C to exit)")
 
-ping = False
-while not ping:
-    ping = not os.system("ping -q -c1 8.8.8.8 > /dev/null")
-    if not ping:
-        print("\b" * 30 +
-              colored("Connect to the Internet to continue", "red"),
-              end="",
-              flush=True)
+conf = config.Config(Path.home().joinpath('.chickenhamrc'))
 
-conf = config.Config(Path.home().joinpath('.chiknhamrc'))
 if not conf.data.txid or not requests.get(
         "http://blockchain.info/tx/{}?show_adv=false&format=json".format(conf.data.txid)):
     c = coinbase_utils.CoinClient.new(conf)
@@ -43,10 +36,10 @@ if not conf.data.txid or not requests.get(
     wif = None
     while not wif:
         inputter = input_shares.UserInput()
-        print(chr(27) + "[2J" + chr(27) + "[H")  # Clear Screen
+        cli.clear_screen()
         shares = [share.code for share in inputter.input_batch()]
         combiner = combine.Combiner(len(shares))
-        print(chr(27) + "[2J" + chr(27) + "[H")  # Clear Screen
+        cli.clear_screen()
         secret = combiner(shares)
         if not secret:
             print(colored("The Shared Codes could not be combined", "red"))
@@ -76,16 +69,9 @@ if not conf.data.txid or not requests.get(
 
     def importkey(privkey):
         rpc_connection.importprivkey(privkey)
-
     scanner_thread = threading.Thread(target=importkey, args=(wif,))
     scanner_thread.start()
-    spinner = ["\u25f4 ", "\u25f7 ", "\u25f6 ", "\u25f5 "]
-    while scanner_thread.is_alive():
-        index = int(time.time() * 8 % len(spinner))
-        print("\b"*29 + spinner[index] + colored("  Scanning blocks...   ", "blue"),
-              end="",
-              flush=True)
-        time.sleep(.05)
+    cli.spinner_notify_while(scanner_thread.is_alive, "Scanning blocks...   ")
 
     balance = round(rpc_connection.getbalance(), 8)
     print(colored("\nScan complete", "green"))
