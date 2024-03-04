@@ -1,5 +1,5 @@
 from termcolor import colored
-from time import sleep
+from time import sleep, time
 
 
 def greeting():
@@ -16,12 +16,33 @@ def greeting():
 
 
 def notify_until(function, message, color="red", interval=5):
-    condition = function()
-    while not condition:
-        condition = function()
-        if not condition:
+    while not function():
+        if not function():
             print("\b" * len(message) +
-              colored(message, color),
-              end="",
-              flush=True)
+                  colored(message, color),
+                  end="",
+                  flush=True)
             sleep(interval)
+
+def clear_screen():
+    print(chr(27) + "[2J" + chr(27) + "[H")
+
+def spinner_notify_while(function, message, color="blue", interval=1,
+                         spinner = ["\u25f4 ", "\u25f7 ", "\u25f6 ", "\u25f5 "]):
+    if not spinner:
+        spinner = [" "]
+    print("{}  {}".format(spinner[index], colored(message, color)),
+          end="", flush=True)
+    index = 0
+    while function():
+        index += 1
+        if index >= len(spinner):
+            index = 0
+        print("{}{}  {}".format("\b"*(len(spinner[1])+2+len(message)),
+                               spinner[index], colored(message, color)),
+              end="", flush=True)
+        sleep(interval)
+    print()
+        
+    
+    
