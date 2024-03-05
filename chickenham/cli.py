@@ -1,5 +1,6 @@
-from termcolor import colored
 from time import sleep
+
+from termcolor import colored
 
 
 def greeting():
