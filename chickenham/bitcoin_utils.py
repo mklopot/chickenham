@@ -16,4 +16,4 @@ def get_confirmations(txid, retries=3):
         if current_block_height and tx_block_height:
             return current_block_height - tx_block_height + 1
         else:
-            retrun None
+            return None
