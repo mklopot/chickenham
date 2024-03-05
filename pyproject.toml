@@ -26,4 +26,5 @@ termcolor = "*"
 python = "^3.8.1"
 flake8 = "^7.0.0"
 mock = "^5.1.0"
+bandit = "^1.7.7"
 
