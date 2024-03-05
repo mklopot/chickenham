@@ -1,20 +1,19 @@
-#!/usr/bin/python3.6
+#!/usr/bin/env python3
 
-import threading
-import time
-from pathlib import Path
-
-import requests
+from pycoin.symbols.btc import network
 # from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 from bitcoinrpc.authproxy import AuthServiceProxy
-from pycoin.symbols.btc import network
+from pathlib import Path
+import config
+import requests
+import time
+import threading
 from termcolor import colored
 
 import cli
-import coinbase_utils
 import combine
-import config
 import input_shares
+import coinbase_utils
 from connectivity import connectivity_check
 import bitcoin_utils
 
