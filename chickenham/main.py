@@ -23,7 +23,8 @@ cli.notify_until(connectivity_check, "Connect to the Internet to continue (or pr
 conf = config.Config(Path.home().joinpath('.chickenhamrc'))
 
 if not conf.data.txid or not requests.get(
-        "http://blockchain.info/tx/{}?show_adv=false&format=json".format(conf.data.txid)):
+        "http://blockchain.info/tx/{}?show_adv=false&format=json".format(conf.data.txid),
+        timeout=60):
     c = coinbase_utils.CoinClient.new(conf)
     btc_account = coinbase_utils.user_choose_confirm(c, 'BTC', 'Bitcoin account')
     try:
@@ -92,7 +93,8 @@ if not conf.data.txid or not requests.get(
             print("Cannot proceed...")
             exit(1)
     try:
-        r = requests.get("https://bitcoinfees.earn.com/api/v1/fees/recommended")
+        r = requests.get("https://bitcoinfees.earn.com/api/v1/fees/recommended",
+                         timeout=60)
         # convert to BTC/KB from satoshis/B, and quadruple it, just in case
         fee_recommended = round(r.json()["fastestFee"] * 0.00004, 8)
         fee = min(fee_recommended, 0.003)
