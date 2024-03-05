@@ -1,5 +1,6 @@
-from coinbase.wallet.client import Client
 import collections
+
+from coinbase.wallet.client import Client
 from termcolor import colored
 
 
