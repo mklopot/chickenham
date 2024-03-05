@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-from chickenham import coinbase_utils
 from unittest import TestCase
+
 from mock import patch
+
+from chickenham import coinbase_utils
 
 
 class Balance:

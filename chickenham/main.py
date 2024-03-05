@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 
-from pycoin.symbols.btc import network
+import threading
+import time
+from pathlib import Path
+
+import bitcoin_utils
+import cli
+import coinbase_utils
+import combine
+import config
+import input_shares
+import requests
 # from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 from bitcoinrpc.authproxy import AuthServiceProxy
-from pathlib import Path
-import config
-import requests
-import time
-import threading
-from termcolor import colored
-
-import cli
-import combine
-import input_shares
-import coinbase_utils
 from connectivity import connectivity_check
-import bitcoin_utils
+from pycoin.symbols.btc import network
+from termcolor import colored
 
 cli.greeting()
 cli.notify_until(connectivity_check, "Connect to the Internet to continue (or press Ctrl-C to exit)")
