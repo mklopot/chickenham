@@ -1,6 +1,8 @@
-import unittest
-from mock import patch
 import io
+import unittest
+
+from mock import patch
+
 from chickenham import cli
 
 
