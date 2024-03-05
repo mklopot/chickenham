@@ -15,6 +15,7 @@ import combine
 import input_shares
 import coinbase_utils
 from connectivity import connectivity_check
+import bitcoin_utils
 
 cli.greeting()
 cli.notify_until(connectivity_check, "Connect to the Internet to continue (or press Ctrl-C to exit)")
@@ -133,65 +134,8 @@ else:
             print("Exiting...")
             exit(1)
 
-if not conf.data.sell_id:
-    print(colored("On-blockchain transfer initiated", "green"))
-    print("Transaction ID: " + colored(txid, "blue"))
-    print("To complete the transfer, 6 confirmations are required.")
-    print(colored("This step usually takes less than two hours, "
-                  "but sometimes may take as long as a few days.", "cyan"))
-    confirmations = 0
-    print("Last checked at: " +
-          colored("{}".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
-                                            time.localtime())),
-                  "yellow"))
-    if confirmations > 5:
-        color = "green"
-    else:
-        color = "blue"
-    print("Confirmations: " + colored("{}".format(confirmations), color),
-          end="",
-          flush=True)
-    while confirmations < 6:
-        try:
-            r = requests.get("http://blockchain.info/tx/{}?show_adv=false&format=json".format(txid))
-            tx_block_height = r.json()["block_height"]
-        except Exception:
-            continue
-        time.sleep(20)
-        try:
-            current_block_height = int(requests.get("https://blockchain.info/q/getblockcount").text)
-        except Exception:
-            continue
-        confirmations = current_block_height - tx_block_height + 1
-        print("\x1b[2A")  # Go up two lines
-        print("{}Last checked at: ".format("\b" * 50) +
-              colored("{}".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
-                                                time.localtime())),
-                      "yellow"))
-        if confirmations > 5:
-            color = "green"
-        else:
-            color = "blue"
-        print("Confirmations: " + colored("{}".format(confirmations), color),
-              end="",
-              flush=True)
-        time.sleep(20)
-    print(colored("Transfer transaction confirmed on the blockchain", "green"))
 
-    # TODO check coinbase balance here...
-    print("Initiating a sale from BTC to USD...")
-    time.sleep(30)  # just in case coinbase needs to catch up
-
-    fiat_accounts = [account for account in c.get_payment_methods().data
-                     if account.type == 'fiat_account']
-    usd_account_payment = [account for account in fiat_accounts
-                           if account.fiat_account.id == usd_account.id][0]
-    btc_account.refresh()
-    sell = btc_account.sell(amount=btc_account.balance.amount,
-                            currency=btc_account.balance.currency,
-                            payment_method=usd_account_payment.id)
-    conf.set("sell_id", sell.id)
-else:
+def get_sell_info(conf, btc_account):
     print("Retrieving previous sell information...")
     sell = None
     while not sell:
@@ -216,6 +160,66 @@ else:
                 print("Exiting...")
                 exit(1)
     # TODO show sell info
+    return sell
+
+
+def wait_for_tx_confirmations(txid):
+    print(colored("On-blockchain transfer initiated", "green"))
+    print("Transaction ID: " + colored(txid, "blue"))
+    print("To complete the transfer, 6 confirmations are required.")
+    print(colored("This step usually takes less than two hours, "
+                  "but sometimes may take as long as a few days.", "cyan"))
+    confirmations = 0
+    print("Last checked at: " +
+          colored("{}".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
+                                            time.localtime())),
+                  "yellow"))
+    if confirmations > 5:
+        color = "green"
+    else:
+        color = "blue"
+    print("Confirmations: " + colored("{}".format(confirmations), color),
+          end="",
+          flush=True)
+    while confirmations < 6:
+        confirmations_query = bitcoin_utils.get_confirmations(txid)
+        if confirmations_query:
+            confirmations = confirmations_query
+        print("\x1b[2A")  # Go up two lines
+        print("{}Last checked at: ".format("\b" * 50) +
+              colored("{}".format(time.strftime('%Y-%m-%d %I:%M:%S %p %Z',
+                                                time.localtime())),
+                      "yellow"))
+        if confirmations > 5:
+            color = "green"
+        else:
+            color = "blue"
+        print("Confirmations: " + colored("{}".format(confirmations), color),
+              end="",
+              flush=True)
+        time.sleep(20)
+    print(colored("Transfer transaction confirmed on the blockchain", "green"))
+
+
+wait_for_tx_confirmations(txid)
+
+if not conf.data.sell_id:
+    wait_for_tx_confirmations(txid)
+    # TODO check coinbase balance here...
+    print("Initiating a sale from BTC to USD...")
+    time.sleep(30)  # just in case coinbase needs to catch up
+
+    fiat_accounts = [account for account in c.get_payment_methods().data
+                     if account.type == 'fiat_account']
+    usd_account_payment = [account for account in fiat_accounts
+                           if account.fiat_account.id == usd_account.id][0]
+    btc_account.refresh()
+    sell = btc_account.sell(amount=btc_account.balance.amount,
+                            currency=btc_account.balance.currency,
+                            payment_method=usd_account_payment.id)
+    conf.set("sell_id", sell.id)
+else:
+    sell = get_sell_info(conf, btc_account)
 
 print("Waiting for SELL action to complete...")
 while sell.status != 'completed':
