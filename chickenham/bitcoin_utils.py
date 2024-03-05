@@ -1,3 +1,6 @@
+import requests
+
+
 def get_confirmations(txid, retries=3):
     current_block_height = None
     tx_block_height = None
