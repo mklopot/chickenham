@@ -14,6 +14,6 @@ def get_confirmations(txid, retries=3):
             except Exception:
                 continue
         if current_block_height and tx_block_height:
-            retrun current_block_height - tx_block_height + 1
+            return current_block_height - tx_block_height + 1
         else:
             retrun None
