@@ -1,5 +1,6 @@
-from share import Batch, Share
 from termcolor import colored
+
+from share import Batch, Share
 
 
 class UserInput:
