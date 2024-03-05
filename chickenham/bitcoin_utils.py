@@ -8,12 +8,14 @@ def get_confirmations(txid, retries=3):
     while not (tx_block_height and current_block_height) or attempts < retries:
         try:
             attempts += 1
-            r = requests.get("http://blockchain.info/tx/{}?show_adv=false&format=json".format(txid))
+            r = requests.get("http://blockchain.info/tx/{}?show_adv=false&format=json".format(txid),
+                             timeout=60)
             tx_block_height = r.json()["block_height"]
         except Exception:
             continue
         try:
-            current_block_height = int(requests.get("https://blockchain.info/q/getblockcount").text)
+            current_block_height = int(requests.get("https://blockchain.info/q/getblockcount",
+                                                    timeout=60).text)
         except Exception:
             continue
 
