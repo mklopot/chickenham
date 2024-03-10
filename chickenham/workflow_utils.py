@@ -1,7 +1,7 @@
-import requests
 import threading
 import time
 
+import requests
 from pycoin.symbols.btc import network
 from termcolor import colored
 
