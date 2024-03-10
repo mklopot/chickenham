@@ -32,9 +32,11 @@ jobs:
         poetry install
     - name: Lint with flake8
       run: |
-        poetry run isort . --check
         # The GitHub editor is 127 chars wide
-        poetry run flake8 . --count --max-line-length=127 --statistics
+        poetry run flake8 . --count --max-line-length=127 --max-complexity=10
+    - name: Sort import statements with isort
+      run: |
+        cd chickenham; poetry run isort . --check
     - name: Test with unittest
       run: |
         poetry run python -m unittest
